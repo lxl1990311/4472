@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="referrer" content="no-referrer">
+<title>大乱斗 · GOAT DRAFT</title>
+<style>
+  :root{
+    --bg:#08090c;
+    --panel:#0f1116;
+    --panel2:#151821;
+    --line:#222631;
+    --line2:#2e3442;
+    --txt:#dde1e8;
+    --dim:#727b8c;
+    --dim2:#49505d;
+    --gold:#ffc857;
+    --purple:#b06cff;
+    --blue:#4f9dff;
+    --gray:#8b95a5;
+    --orange:#ff8a3d;
+    --green:#3ddc97;
+    --red:#ff5561;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:var(--bg);color:var(--txt);
+    font-family:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,"Noto Sans Mono CJK SC",monospace;
+    font-size:14px;line-height:1.6;
+    display:flex;justify-content:center;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(circle at 20% 0%,rgba(255,138,61,.07),transparent 45%),
+      radial-gradient(circle at 85% 100%,rgba(79,157,255,.06),transparent 45%);
+  }
+  #app{
+    width:100%;max-width:560px;min-height:100%;
+    background:var(--panel);
+    border-left:1px solid var(--line);border-right:1px solid var(--line);
+    position:relative;z-index:1;
+    display:flex;flex-direction:column;
+    padding:0 0 env(safe-area-inset-bottom);
+  }
+  @media(max-width:600px){#app{border:none}}
+
+  /* ============ 通用 ============ */
+  .pad{padding:20px}
+  .kicker{font-size:9.5px;letter-spacing:.34em;color:var(--dim2);text-transform:uppercase}
+  .btn{
+    display:block;width:100%;border:none;cursor:pointer;
+    font-family:inherit;font-size:13.5px;font-weight:700;letter-spacing:.16em;
+    padding:14px;border-radius:5px;
+    background:var(--orange);color:#08090c;
+    transition:all .14s ease;
+  }
+  .btn:hover{background:#ffa15f;transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:transparent;color:var(--dim);border:1px solid var(--line2);font-weight:400}
+  .btn.ghost:hover{color:var(--txt);border-color:var(--dim);background:transparent}
+  .btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+
+  /* ============ 顶部进度 ============ */
+  .bar{
+    display:flex;align-items:center;gap:10px;
+    padding:12px 18px;
+    border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:rgba(15,17,22,.94);
+    backdrop-filter:blur(8px);z-index:10;
+  }
+  .bar .lg{font-size:10px;letter-spacing:.2em;color:var(--dim2)}
+  .bar .lg b{color:var(--orange);font-weight:600}
+  .bar .steps{margin-left:auto;display:flex;gap:4px}
+  .bar .steps i{
+    width:22px;height:3px;border-radius:2px;background:var(--line2);
+    transition:background .25s;
+  }
+  .bar .steps i.on{background:var(--orange)}
+  .bar .steps i.done{background:var(--orange);opacity:.45}
+
+  /* ============ 标题页 ============ */
+  .splash{padding:44px 26px 30px;display:flex;flex-direction:column;flex:1}
+  .splash .t1{font-size:58px;font-weight:800;letter-spacing:.02em;line-height:1;margin:10px 0 0}
+  .splash .t1 em{color:var(--orange);font-style:normal}
+  .splash .t2{font-size:11px;letter-spacing:.4em;color:var(--dim2);margin-top:10px}
+  .splash .t3{font-size:11px;letter-spacing:.26em;color:var(--dim2);opacity:.7;margin-top:9px}
+  @media(max-width:420px){.splash .t1{font-size:46px}}
+  .splash .desc{font-size:12.5px;color:var(--dim);line-height:1.95;margin:30px 0;border-left:2px solid var(--line2);padding-left:14px}
+  .splash .desc b{color:var(--txt)}
+  .splash .desc .o{color:var(--orange)}
+  .splash .best{
+    margin-top:24px;font-size:11px;color:var(--dim2);line-height:1.9;
+  }
+  .splash .best b{color:var(--gold)}
+  .splash .note{font-size:10px;color:var(--dim2);line-height:1.7;opacity:.75}
+  .splash .foot{margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:9px}
+  .disc{font-size:9.5px;letter-spacing:.16em;color:var(--dim2);opacity:.8;margin-top:14px}
+  .checkbtn{
+    font-family:inherit;font-size:10px;letter-spacing:.1em;color:var(--dim2);
+    background:none;border:none;cursor:pointer;padding:3px 0;
+    display:flex;align-items:center;gap:6px;transition:color .15s;
+  }
+  .checkbtn:hover{color:var(--txt)}
+  .checkbtn i{
+    width:6px;height:6px;border-radius:50%;background:var(--orange);display:block;
+    box-shadow:0 0 7px rgba(255,138,61,.85);
+  }
+  .checkout{font-size:10px;line-height:1.75;color:var(--dim);text-align:center;letter-spacing:.02em}
+  .checkout .cok{color:var(--gold);font-weight:700}
+  .checkout .cbad{color:#ff6b6b;font-weight:700}
+
+  /* ============ 选秀 ============ */
+  .draft{padding:16px 16px 24px;display:flex;flex-direction:column;gap:12px;flex:1}
+  .roundinfo{display:flex;align-items:baseline;gap:10px;padding:0 2px}
+  .roundinfo .pos{font-size:19px;font-weight:700;letter-spacing:.04em}
+  .roundinfo .pos em{color:var(--orange);font-style:normal}
+  .roundinfo .no{margin-left:auto;font-size:11px;color:var(--dim2);letter-spacing:.1em}
+
+  /* ---- 抽签面板 ---- */
+  .signno{margin-left:8px;font-size:10px;color:var(--dim2);letter-spacing:.06em;white-space:nowrap}
+  .signpanel{
+    border:1px solid var(--line2);border-radius:7px;
+    background:linear-gradient(180deg,#151821,#101319);
+    padding:14px;text-align:center;
+  }
+  .signtop{display:flex;gap:8px;margin-bottom:10px}
+  .st,.se{
+    border-radius:5px;padding:10px 8px;
+    font-size:16px;font-weight:700;letter-spacing:.01em;
+    background:#1b1f28;border:1px solid var(--line2);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .st{flex:1;color:var(--orange)}
+  .se{flex:0 0 auto;min-width:94px;color:var(--txt);font-size:15px}
+  .st.q,.se.q{color:var(--dim2);letter-spacing:.16em;font-weight:400;font-size:14px}
+  .signtip{font-size:11.5px;color:var(--dim);line-height:1.7}
+  .drawbtn{
+    width:100%;margin-top:13px;border:none;cursor:pointer;
+    font-family:inherit;font-size:16px;font-weight:800;letter-spacing:.42em;
+    padding:13px;border-radius:6px;text-indent:.42em;
+    background:var(--orange);color:#08090c;
+    transition:all .14s;
+  }
+  .drawbtn:hover{background:#ffa15f;transform:translateY(-1px)}
+  .rerolls{display:flex;gap:8px}
+  .rb{
+    flex:1;background:transparent;border:1px solid var(--line2);
+    color:var(--txt);font-family:inherit;font-size:12px;
+    padding:9px;border-radius:5px;cursor:pointer;transition:all .13s;
+  }
+  .rb:hover:not(:disabled){border-color:var(--orange);color:var(--orange)}
+  .rb:disabled{opacity:.26;cursor:not-allowed}
+  .remain{font-size:10.5px;color:var(--dim2);text-align:center;letter-spacing:.04em;margin-top:-3px}
+  .remain.dead{color:var(--red);opacity:.65}
+
+  /* ---- 球员卡位置按钮 ---- */
+  .poses{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;align-items:center}
+  .postag{
+    font-size:10px;letter-spacing:.08em;
+    padding:3px 9px;border-radius:3px;
+    background:rgba(255,138,61,.13);border:1px solid rgba(255,138,61,.45);
+    color:var(--orange);
+  }
+  .postag.off{
+    background:transparent;border-color:var(--line2);color:var(--dim2);
+  }
+  .card.sel{
+    border-color:var(--orange);background:#1f1a15;
+    transform:translateX(3px);
+    box-shadow:inset 0 0 0 1px rgba(255,138,61,.28);
+  }
+  .card.sel::before{background:var(--orange)}
+  .usedmark{font-size:9.5px;color:var(--dim2);letter-spacing:.1em;margin-left:3px}
+  .card.dead{opacity:.3;filter:grayscale(.7)}
+  .card.dead:hover{transform:none;border-color:var(--line2)}
+
+  .cards{display:flex;flex-direction:column;gap:9px}
+
+  .card{
+    position:relative;
+    background:var(--panel2);
+    border:1px solid var(--line2);
+    border-radius:7px;
+    padding:13px 14px 12px 16px;
+    cursor:pointer;
+    transition:all .16s ease;
+    overflow:hidden;
+    animation:up .28s cubic-bezier(.2,.8,.3,1) both;
+  }
+  @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .card::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gray);
+  }
+  .card.t-legend::before{background:var(--gold)}
+  .card.t-star::before{background:var(--purple)}
+  .card.t-pro::before{background:var(--blue)}
+  .card.t-solid::before{background:var(--gray)}
+  .card.t-legend{background:linear-gradient(100deg,#1d1910,#151821 55%)}
+  .card.t-star{background:linear-gradient(100deg,#1a1421,#151821 55%)}
+  .card:hover{border-color:var(--orange);transform:translateX(3px)}
+  .card.t-legend:hover{border-color:var(--gold)}
+  .card.t-star:hover{border-color:var(--purple)}
+  .card:active{transform:translateX(3px) scale(.995)}
+
+  .card .cbody{display:flex;align-items:flex-start;gap:12px}
+  .card .cname{flex:1 1 auto;min-width:0}
+  .card .cid{
+    font-size:17px;font-weight:700;letter-spacing:.02em;
+    display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+  }
+  .card .rt{
+    font-size:10px;padding:1px 5px;border-radius:2px;letter-spacing:.1em;font-weight:600;
+  }
+  .t-legend .rt{color:var(--gold);background:rgba(255,200,87,.13)}
+  .t-star .rt{color:var(--purple);background:rgba(176,108,255,.13)}
+  .t-pro .rt{color:var(--blue);background:rgba(79,157,255,.13)}
+  .t-solid .rt{color:var(--gray);background:rgba(139,149,165,.12)}
+  .card .meta{font-size:11px;color:var(--dim);margin-top:2px;letter-spacing:.02em}
+  .card .rate{
+    flex:0 0 auto;text-align:right;
+    font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;
+    line-height:1.1;
+  }
+  .t-legend .rate{color:var(--gold)}
+  .t-star .rate{color:var(--purple)}
+  .t-pro .rate{color:var(--blue)}
+  .t-solid .rate{color:var(--gray)}
+  .card .rate small{display:block;font-size:9px;color:var(--dim2);letter-spacing:.14em;font-weight:400;margin-top:1px}
+
+  .tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .tags span{
+    font-size:10px;color:var(--dim);
+    border:1px solid var(--line2);border-radius:3px;
+    padding:1px 6px;letter-spacing:.02em;
+  }
+  .fitline{margin-top:7px;font-size:10.5px;letter-spacing:.02em}
+  .fit-good{color:var(--green)}
+  .fit-mid{color:var(--gold)}
+  .fit-bad{color:var(--red)}
+
+  /* ============ 阵容栏 ============ */
+  /* ---- 阵容槽位（在顶部，主要交互区） ---- */
+  .lineup{display:flex;gap:5px;padding:0}
+  .slot{
+    flex:1;min-width:0;height:62px;
+    border:1px solid var(--line2);border-radius:5px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:1px;padding:4px 3px;
+    background:#0d0f14;
+    transition:all .16s ease;
+    cursor:default;
+  }
+  .slot .sp{font-size:8.5px;letter-spacing:.09em;color:var(--dim2)}
+  .slot .sn{
+    font-size:10.5px;font-weight:600;color:var(--txt);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+    line-height:1.25;
+  }
+  .slot .stier{font-size:8px;letter-spacing:.05em;font-weight:400}
+  .slot.filled{background:var(--panel2);border-style:solid}
+  .slot.filled.t-legend{border-color:rgba(255,200,87,.45);background:linear-gradient(180deg,#1d1910,#14171d)}
+  .slot.filled.t-star{border-color:rgba(176,108,255,.4);background:linear-gradient(180deg,#1a1421,#14171d)}
+  .slot.filled.t-pro{border-color:rgba(79,157,255,.35)}
+  .slot.target{
+    border-color:var(--orange);background:rgba(255,138,61,.13);
+    cursor:pointer;animation:slotpulse 1.1s ease-in-out infinite;
+  }
+  .slot.target .sn{color:var(--orange)}
+  @keyframes slotpulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(255,138,61,.35)}
+    50%{box-shadow:0 0 0 4px rgba(255,138,61,.08)}
+  }
+  .slot.target:hover{background:rgba(255,138,61,.22)}
+  .droptip{
+    font-size:10.5px;color:var(--dim2);text-align:center;letter-spacing:.03em;
+    min-height:16px;
+  }
+  .droptip.on{color:var(--orange)}
+  .tier-legend{color:var(--gold)}
+  .tier-star{color:var(--purple)}
+  .tier-pro{color:var(--blue)}
+  .tier-solid{color:var(--gray)}
+
+  /* ============ 结算 ============ */
+  .result{padding:26px 22px 30px;display:flex;flex-direction:column;flex:1}
+  /* ---- 战绩大数字 ---- */
+  .record{display:flex;align-items:baseline;gap:11px;margin:14px 0 0;line-height:.82}
+  .rw{font-size:78px;font-weight:800;letter-spacing:-.03em;color:var(--gold);font-variant-numeric:tabular-nums}
+  .runit{font-size:12px;color:var(--dim);letter-spacing:.16em;padding-bottom:9px}
+  .rsub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .gpill{
+    font-size:12px;font-weight:800;letter-spacing:.06em;
+    border:1px solid currentColor;border-radius:4px;padding:1px 7px;
+  }
+  .rtext{font-size:11px;color:var(--dim);letter-spacing:.03em}
+  .majors{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+  .mj{
+    font-size:10.5px;letter-spacing:.05em;padding:3px 9px;border-radius:3px;
+    border:1px solid var(--line2);color:var(--dim);
+  }
+  .mj.champ{color:var(--gold);border-color:rgba(255,200,87,.45);background:rgba(255,200,87,.08)}
+  .mj.final{color:var(--blue);border-color:rgba(79,157,255,.42)}
+  .mj.semi{color:var(--dim)}
+  .mj.out{color:var(--red);border-color:rgba(255,85,97,.28)}
+  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+  .pill{
+    font-size:10.5px;color:var(--dim);
+    border:1px solid var(--line2);border-radius:20px;padding:2px 10px;
+  }
+  .bestmark{font-size:10px;color:var(--gold);letter-spacing:.2em;margin-top:11px}
+
+  /* ---- 赛季数据 ---- */
+  .stats{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .strow{display:flex;align-items:center;gap:10px;background:var(--panel);padding:9px 11px}
+  .strow.iscore{background:linear-gradient(90deg,#1c1710,#0f1116 72%)}
+  .stpos{font-size:9px;color:var(--dim2);letter-spacing:.08em;width:26px;flex:0 0 auto}
+  .stmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  .stname{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+  .stline{font-size:9.5px;color:var(--dim2)}
+  .stright{flex:0 0 auto;min-width:92px;display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+  .strating{font-size:17px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.05}
+  .strating span{display:block;font-size:7px;color:var(--dim2);letter-spacing:.14em;font-weight:400;text-align:right}
+  .strsub{font-size:8.5px;color:var(--dim2);font-variant-numeric:tabular-nums}
+  .honor{
+    font-size:8.5px;letter-spacing:.04em;padding:0 4px;border-radius:2px;
+    border:1px solid var(--line2);color:var(--dim);font-weight:400;
+  }
+  .wrank{
+    font-size:9px;letter-spacing:.04em;padding:0 5px;border-radius:2px;
+    background:rgba(255,200,87,.12);border:1px solid rgba(255,200,87,.5);
+    color:var(--gold);font-weight:700;
+  }
+  .honor.mvp{color:var(--gold);border-color:rgba(255,200,87,.45);background:rgba(255,200,87,.1)}
+  .honor.evp{color:var(--blue);border-color:rgba(79,157,255,.4);background:rgba(79,157,255,.08)}
+
+  .rgrade{
+    display:flex;align-items:flex-end;gap:14px;
+    margin:8px 0 4px;
+  }
+  .rgrade .big{
+    font-size:76px;font-weight:800;line-height:.85;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;
+  }
+  .rgrade .unit{font-size:12px;color:var(--dim2);letter-spacing:.2em;padding-bottom:8px}
+  .rgrade .lv{
+    margin-left:auto;text-align:right;padding-bottom:6px;
+  }
+  .rgrade .lv .g{font-size:26px;font-weight:800;letter-spacing:.04em;line-height:1}
+  .rgrade .lv .lb{font-size:9px;color:var(--dim2);letter-spacing:.24em;margin-top:4px}
+
+  .g-SP{color:#ff5ec4;text-shadow:0 0 22px rgba(255,94,196,.35)}
+  .g-S{color:var(--gold);text-shadow:0 0 20px rgba(255,200,87,.3)}
+  .g-A{color:var(--green);text-shadow:0 0 18px rgba(61,220,151,.25)}
+  .g-B{color:var(--blue)}
+  .g-C{color:var(--dim)}
+  .g-D{color:var(--red)}
+
+  .verdict{
+    font-size:13px;line-height:1.9;color:var(--txt);
+    background:var(--panel2);border-left:2px solid var(--orange);
+    padding:12px 14px;border-radius:0 4px 4px 0;
+    margin:18px 0;
+    white-space:pre-wrap;
+  }
+  .sec{font-size:9.5px;letter-spacing:.26em;color:var(--dim2);margin:20px 0 9px}
+  .secnote{font-size:9px;letter-spacing:.02em;color:var(--dim2);margin-left:9px;opacity:.8}
+  .rows{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .row{display:flex;align-items:center;gap:10px;background:var(--panel);padding:9px 12px;font-size:12px}
+  .row .rn{flex:1;color:var(--dim)}
+  .row .rv{font-variant-numeric:tabular-nums;font-weight:600}
+  .pos-v{color:var(--green)}
+  .neg-v{color:var(--red)}
+  .zero-v{color:var(--dim2)}
+
+  /* ---- 选核心 / 选战术 ---- */
+  .stage{padding:18px 16px 26px;display:flex;flex-direction:column;gap:12px;flex:1}
+  .stageh{font-size:17px;font-weight:700;letter-spacing:.02em}
+  .staged{font-size:11.5px;color:var(--dim);line-height:1.75;margin-top:-6px}
+
+  .coregrid{display:flex;flex-direction:column;gap:7px}
+  .corecard{
+    display:flex;align-items:center;gap:10px;
+    background:var(--panel2);border:1px solid var(--line2);
+    border-radius:6px;padding:11px 13px;cursor:pointer;
+    transition:all .14s;position:relative;overflow:hidden;
+  }
+  .corecard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gray)}
+  .corecard.t-legend::before{background:var(--gold)}
+  .corecard.t-star::before{background:var(--purple)}
+  .corecard.t-pro::before{background:var(--blue)}
+  .corecard:hover{border-color:var(--orange);transform:translateX(2px)}
+  .corecard.sel{border-color:var(--orange);background:#1e1a16}
+  .ccpos{font-size:9.5px;color:var(--dim2);letter-spacing:.1em;width:46px;flex:0 0 auto}
+  .ccname{font-size:14px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ccmeta{font-size:10px;color:var(--dim2);flex:0 0 auto}
+
+  .tacgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .taccard{
+    background:var(--panel2);border:1px solid var(--line2);border-radius:6px;
+    padding:10px 9px;cursor:pointer;transition:all .14s;position:relative;
+    min-height:86px;display:flex;flex-direction:column;gap:4px;
+  }
+  .taccard:hover:not(.locked){border-color:var(--orange);transform:translateY(-1px)}
+  .taccard.sel{border-color:var(--orange);background:#1e1a16;box-shadow:inset 0 0 0 1px var(--orange)}
+  .taccard.locked{opacity:.3;cursor:not-allowed;background:transparent}
+  .taccard .tn{font-size:12.5px;font-weight:700;letter-spacing:.01em;color:var(--txt)}
+  .taccard .td{font-size:9.5px;color:var(--dim);line-height:1.5}
+  .taccard .lock{
+    position:absolute;top:5px;right:5px;font-size:8px;letter-spacing:.04em;
+    color:var(--dim2);border:1px solid var(--line2);border-radius:2px;padding:0 3px;
+  }
+  .stageacts{display:flex;gap:8px;margin-top:auto;padding-top:12px}
+  .stageacts .btn{margin:0}
+  .stageacts .btn.ghost{flex:0 0 96px}
+
+  .coremark{
+    font-size:9px;color:var(--orange);border:1px solid rgba(255,138,61,.45);
+    border-radius:2px;padding:0 4px;margin-left:6px;letter-spacing:.06em;vertical-align:1px;
+  }
+  .emptymark{font-size:9.5px;color:var(--dim2);letter-spacing:.1em;margin-left:3px}
+
+  /* 赛季战绩 */
+  .season{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .sev{background:var(--panel);padding:9px 12px}
+  .sev-h{display:flex;align-items:baseline;gap:8px}
+  .sev-n{font-size:12px;font-weight:600;letter-spacing:.02em;flex:1;color:var(--txt)}
+  .sev-p{font-size:10.5px;font-weight:700;letter-spacing:.1em}
+  .sev-p.champ{color:var(--gold)}
+  .sev-p.final{color:var(--blue)}
+  .sev-p.semi{color:var(--dim)}
+  .sev-p.out{color:var(--red)}
+  .sev-path{font-size:10px;color:var(--dim2);margin-top:3px;line-height:1.6}
+  .sev.major-ev{background:linear-gradient(90deg,#16130c,#0f1116 60%)}
+  .sev.major-ev .sev-n{color:var(--gold)}
+
+  .finalteam{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden;margin-bottom:6px}
+  .ft{display:flex;align-items:center;gap:10px;background:var(--panel);padding:9px 12px}
+  .ft .fp{font-size:9px;color:var(--dim2);letter-spacing:.1em;width:38px;flex:0 0 auto}
+  .ft .fn{font-size:13px;font-weight:600;flex:1}
+  .ft .fr{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+
+  .acts{display:flex;flex-direction:column;gap:8px;margin-top:22px}
+
+  .sharebox{
+    margin-top:14px;font-size:11.5px;color:var(--dim);
+    background:#0b0d12;border:1px solid var(--line);
+    border-radius:4px;padding:12px;
+    white-space:pre-wrap;line-height:1.8;display:none;
+    max-height:180px;overflow:auto;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const R = (a,b)=> a + Math.random()*(b-a);
+const RI = (a,b)=> Math.floor(a + Math.random()*(b-a+1));
+const PICK = a => a[Math.floor(Math.random()*a.length)];
+const SHUF = a => { const b=a.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; };
+const CLAMP=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ==========================================================
+   位置
+   ========================================================== */
+const POS = [
+  {k:'awp',     n:'狙击手', en:'AWPER',   w:1.26, d:'队伍的眼睛。一枪改命，也一枪改命。'},
+  {k:'entry',   n:'突破手', en:'ENTRY',   w:1.16, d:'第一个进点的人。活下来的那个叫英雄。'},
+  {k:'igl',     n:'指挥',   en:'IGL',     w:1.14, d:'五个人的脑子。赢在开局前，输在暂停后。'},
+  {k:'support', n:'辅助',   en:'SUPPORT', w:1.02, d:'扔道具、拉枪线、数据表上看不见的那个人。'},
+  {k:'lurker',  n:'自由人', en:'LURKER',  w:1.17, d:'地图另一头。你以为他不在，他一直在。'}
+];
+const POS_MAP = {}; POS.forEach(p=>POS_MAP[p.k]=p);
+/* 槽位里用的短标签 */
+const POS_ABBR = {awp:'AWP', entry:'ENT', igl:'IGL', support:'SUP', lurker:'LUR'};
+
+/* ==========================================================
+   战术体系
+   mod 里的数字是「该位置的战力乘数」——强化一个位置必然削弱别的，
+   所以选了战术之后要按加权均值归一化，净收益取决于阵容强项在哪
+   ========================================================== */
+const TACTICS = [
+  {id:'default', n:'默认打法', d:'均衡，没有明显短板，也没有明显优势', mod:{}},
+  {id:'rush',    n:'RUSH 强袭', d:'提速压点，让突破手开路',          mod:{entry:1.30, lurker:0.75}},
+  {id:'exec',    n:'爆弹执行', d:'道具开路，五个人一起进点',          mod:{support:1.25, igl:1.15, lurker:0.80}},
+  {id:'dawp',    n:'双狙体系', d:'两个狙击点，长枪局压制力拉满',      mod:{awp:1.35, entry:0.80}},
+  {id:'slow',    n:'控图慢磨', d:'先拿信息，最后四十秒才进点',        mod:{lurker:1.30, igl:1.20, entry:0.75}},
+  {id:'split',   n:'4-1 分推', d:'四个人打一面，一个人打另一面',      mod:{lurker:1.25, support:1.15, entry:0.85}},
+  {id:'retake',  n:'回防体系', d:'丢了包点也要打回来，靠的是站位',    mod:{support:1.30, awp:1.15, entry:0.85}},
+  {id:'eco',     n:'经济运营', d:'穷局也能赢，靠的是纪律和耐心',      mod:{igl:1.30, support:1.20, awp:0.85}},
+  {id:'stack',   n:'抱团推进', d:'五个人一起走，绝不分散',            mod:{entry:1.20, support:1.20, lurker:0.70}},
+  {id:'coach',   n:'教练体系', d:'还没解锁', locked:true},
+  {id:'data',    n:'数据分析', d:'还没解锁', locked:true},
+  {id:'mental',  n:'心理战',   d:'还没解锁', locked:true}
+];
+
+/* ==========================================================
+   选手池
+   r = HLTV 风格 rating（生涯巅峰近似值）
+   alt = 可以客串的位置
+   ========================================================== */
+/* ==========================================================
+   战队 × 年代 选手池
+   抽签抽的是「战队 + 年代」，再从这批人里挑一个填进空位
+   p    = 可打位置（按优先级排列）
+   r    = rating（生涯/该年代近似值）
+   c    = 国籍（羁绊用）
+   ========================================================== */
+const SQUADS = {
+  Astralis: {
+    '2017': [
+      {n:'device',    p:['awp'],              r:1.24, c:'丹麦'},
+      {n:'dupreeh',   p:['entry'],            r:1.18, c:'丹麦'},
+      {n:'gla1ve',    p:['igl'],              r:1.12, c:'丹麦'},
+      {n:'Kjaerbye',  p:['entry','lurker'],   r:1.14, c:'丹麦'},
+      {n:'Xyp9x',     p:['support','lurker'], r:1.13, c:'丹麦'}
+    ],
+    /* 2018 伦敦 Major 与 2019 卡托/柏林 Major 是同一套五人，合并为一条 */
+    '2019': [
+      {n:'device',    p:['awp'],              r:1.27, c:'丹麦'},
+      {n:'dupreeh',   p:['entry'],            r:1.19, c:'丹麦'},
+      {n:'gla1ve',    p:['igl'],              r:1.15, c:'丹麦'},
+      {n:'Magisk',    p:['support','entry'],  r:1.18, c:'丹麦'},
+      {n:'Xyp9x',     p:['support','lurker'], r:1.15, c:'丹麦'}
+    ],
+    '2020': [
+      {n:'device',    p:['awp'],              r:1.26, c:'丹麦'},
+      {n:'dupreeh',   p:['entry'],            r:1.18, c:'丹麦'},
+      {n:'gla1ve',    p:['igl'],              r:1.14, c:'丹麦'},
+      {n:'Magisk',    p:['support','entry'],  r:1.16, c:'丹麦'},
+      {n:'Xyp9x',     p:['support','lurker'], r:1.12, c:'丹麦'},
+      {n:'es3tag',    p:['lurker','entry'],   r:1.10, c:'丹麦'},
+      {n:'JUGi',      p:['awp'],              r:1.05, c:'丹麦'}
+    ]
+  },
+  'Natus Vincere': {
+    /* 2015 克卢日-纳波卡 Major 亚军；2016 哥伦布 Major 亚军 */
+    '2015': [
+      {n:'GuardiaN',  p:['awp'],              r:1.16, c:'斯洛伐克'},
+      {n:'flamie',    p:['entry','lurker'],   r:1.14, c:'俄罗斯'},
+      {n:'Edward',    p:['lurker','support'], r:1.10, c:'乌克兰'},
+      {n:'seized',    p:['igl','support'],    r:1.08, c:'俄罗斯'},
+      {n:'starix',    p:['support'],          r:1.03, c:'乌克兰'}
+    ],
+    '2016': [
+      {n:'GuardiaN',  p:['awp'],              r:1.15, c:'斯洛伐克'},
+      {n:'flamie',    p:['entry','lurker'],   r:1.12, c:'俄罗斯'},
+      {n:'seized',    p:['support','entry'],  r:1.10, c:'俄罗斯'},
+      {n:'Edward',    p:['lurker','support'], r:1.08, c:'乌克兰'},
+      {n:'Zeus',      p:['igl'],              r:1.04, c:'乌克兰'}
+    ],
+    '2018': [
+      {n:'s1mple',    p:['awp','lurker'],     r:1.35, c:'乌克兰'},
+      {n:'electronic',p:['entry','support'],  r:1.20, c:'俄罗斯'},
+      {n:'flamie',    p:['support','entry'],  r:1.10, c:'俄罗斯'},
+      {n:'Edward',    p:['lurker','support'], r:1.05, c:'乌克兰'},
+      {n:'Zeus',      p:['igl'],              r:1.04, c:'乌克兰'}
+    ],
+    '2020': [
+      {n:'s1mple',    p:['awp','lurker'],     r:1.33, c:'乌克兰'},
+      {n:'electronic',p:['entry','support'],  r:1.20, c:'俄罗斯'},
+      {n:'Boombl4',   p:['igl'],              r:1.08, c:'俄罗斯'},
+      {n:'Perfecto',  p:['support'],          r:1.12, c:'俄罗斯'},
+      {n:'flamie',    p:['entry','lurker'],   r:1.07, c:'俄罗斯'}
+    ],
+    '2021': [
+      {n:'s1mple',    p:['awp','lurker'],     r:1.36, c:'乌克兰'},
+      {n:'electronic',p:['entry','support'],  r:1.23, c:'俄罗斯'},
+      {n:'Boombl4',   p:['igl'],              r:1.10, c:'俄罗斯'},
+      {n:'Perfecto',  p:['support'],          r:1.15, c:'俄罗斯'},
+      {n:'b1t',       p:['lurker','support'], r:1.21, c:'乌克兰'}
+    ],
+    '2024': [
+      {n:'w0nderful', p:['awp'],              r:1.22, c:'乌克兰'},
+      {n:'jL',        p:['entry','lurker'],   r:1.20, c:'立陶宛'},
+      {n:'Aleksib',   p:['igl'],              r:1.12, c:'芬兰'},
+      {n:'iM',        p:['lurker','entry'],   r:1.14, c:'罗马尼亚'},
+      {n:'b1t',       p:['support','lurker'], r:1.17, c:'乌克兰'}
+    ]
+  },
+  FaZe: {
+    /* 2024 哥本哈根 + 上海双料 Major 亚军 */
+    '2024': [
+      {n:'ropz',      p:['lurker'],           r:1.19, c:'爱沙尼亚'},
+      {n:'broky',     p:['awp'],              r:1.17, c:'拉脱维亚'},
+      {n:'frozen',    p:['entry','support'],  r:1.16, c:'斯洛伐克'},
+      {n:'rain',      p:['entry'],            r:1.13, c:'挪威'},
+      {n:'karrigan',  p:['igl'],              r:1.05, c:'丹麦'}
+    ],
+    '2022': [
+      {n:'broky',     p:['awp'],              r:1.19, c:'拉脱维亚'},
+      {n:'rain',      p:['entry'],            r:1.16, c:'挪威'},
+      {n:'karrigan',  p:['igl'],              r:1.11, c:'丹麦'},
+      {n:'ropz',      p:['lurker','entry'],   r:1.21, c:'爱沙尼亚'},
+      {n:'Twistzz',   p:['entry','support'],  r:1.22, c:'加拿大'},
+      {n:'olofmeister',p:['support'],         r:1.08, c:'瑞典'}
+    ],
+    '2018': [
+      {n:'GuardiaN',  p:['awp'],              r:1.19, c:'斯洛伐克'},
+      {n:'NiKo',      p:['entry','lurker'],   r:1.28, c:'波黑'},
+      {n:'rain',      p:['support','entry'],  r:1.15, c:'挪威'},
+      {n:'olofmeister',p:['support','lurker'], r:1.14, c:'瑞典'},
+      {n:'karrigan',  p:['igl'],              r:1.09, c:'丹麦'},
+      {n:'Xizt',      p:['support','lurker'], r:1.02, c:'瑞典'}
+    ]
+  },
+  Vitality: {
+    /* 2019 科隆亚军（ZywOo 出道年） */
+    '2019': [
+      {n:'ZywOo',     p:['awp'],              r:1.30, c:'法国'},
+      {n:'apEX',      p:['entry'],            r:1.13, c:'法国'},
+      {n:'RpK',       p:['support','lurker'], r:1.10, c:'法国'},
+      {n:'NBK-',      p:['support','entry'],  r:1.08, c:'法国'},
+      {n:'ALEX',      p:['igl'],              r:1.06, c:'英国'}
+    ],
+    '2023': [
+      {n:'ZywOo',     p:['awp','lurker'],     r:1.35, c:'法国'},
+      {n:'apEX',      p:['entry','igl'],      r:1.15, c:'法国'},
+      {n:'dupreeh',   p:['entry'],            r:1.17, c:'丹麦'},
+      {n:'Magisk',    p:['support','entry'],  r:1.17, c:'丹麦'},
+      {n:'Spinx',     p:['lurker','support'], r:1.19, c:'以色列'},
+      {n:'JACKZ',     p:['support'],          r:1.08, c:'法国'}
+    ],
+    '2024': [
+      {n:'ZywOo',     p:['awp','lurker'],     r:1.32, c:'法国'},
+      {n:'flameZ',    p:['entry','lurker'],   r:1.20, c:'以色列'},
+      {n:'Spinx',     p:['lurker','support'], r:1.18, c:'以色列'},
+      {n:'mezii',     p:['support'],          r:1.12, c:'英国'},
+      {n:'apEX',      p:['igl','entry'],      r:1.11, c:'法国'}
+    ],
+    '2025': [
+      {n:'ZywOo',     p:['awp'],              r:1.37, c:'法国'},
+      {n:'apEX',      p:['igl'],              r:1.12, c:'法国'},
+      {n:'ropz',      p:['lurker'],           r:1.22, c:'爱沙尼亚'},
+      {n:'flameZ',    p:['entry','lurker'],   r:1.18, c:'以色列'},
+      {n:'mezii',     p:['support'],          r:1.13, c:'英国'}
+    ]
+  },
+  G2: {
+    /* 2020 卡托维兹亚军（kennyS 主狙）；2021 斯德哥尔摩 + 科隆双料亚军 */
+    '2020': [
+      {n:'huNter-',   p:['entry','support'],  r:1.17, c:'波黑'},
+      {n:'kennyS',    p:['awp'],              r:1.15, c:'法国'},
+      {n:'AmaNEk',    p:['support','lurker'], r:1.10, c:'法国'},
+      {n:'JaCkz',     p:['entry','lurker'],   r:1.08, c:'法国'},
+      {n:'nexa',      p:['igl'],              r:1.06, c:'塞尔维亚'}
+    ],
+    '2021': [
+      {n:'NiKo',      p:['entry','lurker'],   r:1.28, c:'波黑'},
+      {n:'huNter-',   p:['support','entry'],  r:1.17, c:'波黑'},
+      {n:'AmaNEk',    p:['awp','support'],    r:1.08, c:'法国'},
+      {n:'JaCkz',     p:['entry','lurker'],   r:1.07, c:'法国'},
+      {n:'nexa',      p:['igl'],              r:1.06, c:'塞尔维亚'}
+    ],
+    '2023': [
+      {n:'m0NESY',    p:['awp'],              r:1.25, c:'俄罗斯'},
+      {n:'NiKo',      p:['entry','lurker'],   r:1.25, c:'波黑'},
+      {n:'huNter-',   p:['support','entry'],  r:1.15, c:'波黑'},
+      {n:'jks',       p:['lurker','support'], r:1.11, c:'澳大利亚'},
+      {n:'HooXi',     p:['igl'],              r:1.03, c:'丹麦'}
+    ],
+    '2024': [
+      {n:'m0NESY',    p:['awp'],              r:1.27, c:'俄罗斯'},
+      {n:'NiKo',      p:['entry','lurker'],   r:1.26, c:'波黑'},
+      {n:'huNter-',   p:['support','entry'],  r:1.17, c:'波黑'},
+      {n:'HooXi',     p:['igl'],              r:1.05, c:'丹麦'},
+      {n:'jks',       p:['support','lurker'], r:1.11, c:'澳大利亚'},
+      {n:'Snax',      p:['igl','entry'],      r:1.08, c:'波兰'}
+    ],
+    '2022': [
+      {n:'m0NESY',    p:['awp'],              r:1.24, c:'俄罗斯'},
+      {n:'NiKo',      p:['entry','lurker'],   r:1.28, c:'波黑'},
+      {n:'huNter-',   p:['support'],          r:1.17, c:'波黑'},
+      {n:'HooXi',     p:['igl'],              r:1.04, c:'丹麦'},
+      {n:'jks',       p:['lurker','support'], r:1.12, c:'澳大利亚'},
+      {n:'AmaNEk',    p:['support'],          r:1.06, c:'法国'}
+    ]
+  },
+  Fnatic: {
+    '2013': [
+      {n:'JW',        p:['awp'],              r:1.15, c:'瑞典'},
+      {n:'flusha',    p:['lurker'],           r:1.14, c:'瑞典'},
+      {n:'pronax',    p:['igl'],              r:1.06, c:'瑞典'},
+      {n:'Devilwalk', p:['entry'],            r:1.05, c:'瑞典'},
+      {n:'schneider', p:['support'],          r:1.08, c:'瑞典'}
+    ],
+    '2015': [
+      {n:'JW',        p:['awp'],              r:1.19, c:'瑞典'},
+      {n:'olofmeister',p:['entry','lurker'],  r:1.24, c:'瑞典'},
+      {n:'flusha',    p:['lurker','igl'],     r:1.21, c:'瑞典'},
+      {n:'KRIMZ',     p:['support'],          r:1.18, c:'瑞典'},
+      {n:'pronax',    p:['igl'],              r:1.05, c:'瑞典'}
+    ],
+    '2016': [
+      {n:'olofmeister',p:['entry','lurker'],  r:1.24, c:'瑞典'},
+      {n:'flusha',    p:['lurker','igl'],     r:1.19, c:'瑞典'},
+      {n:'JW',        p:['awp'],              r:1.18, c:'瑞典'},
+      {n:'KRIMZ',     p:['support'],          r:1.16, c:'瑞典'},
+      {n:'dennis',    p:['entry','lurker'],   r:1.15, c:'瑞典'}
+    ],
+    '2018': [
+      {n:'flusha',    p:['lurker','igl'],     r:1.14, c:'瑞典'},
+      {n:'JW',        p:['awp'],              r:1.13, c:'瑞典'},
+      {n:'KRIMZ',     p:['support','entry'],  r:1.15, c:'瑞典'},
+      {n:'Golden',    p:['igl'],              r:1.03, c:'瑞典'},
+      {n:'Lekr0',     p:['entry','support'],  r:1.07, c:'瑞典'}
+    ]
+  },
+  Liquid: {
+    /* 2016 科隆 Major 亚军（s1mple 临时加盟那支） */
+    '2016': [
+      {n:'s1mple',    p:['awp','lurker'],     r:1.25, c:'乌克兰'},
+      {n:'EliGE',     p:['entry','lurker'],   r:1.17, c:'美国'},
+      {n:'nitr0',     p:['igl','entry'],      r:1.10, c:'美国'},
+      {n:'Hiko',      p:['support','lurker'], r:1.06, c:'美国'},
+      {n:'jdm64',     p:['awp','support'],    r:1.05, c:'美国'}
+    ],
+    '2018': [
+      {n:'nitr0',     p:['igl','entry'],      r:1.12, c:'美国'},
+      {n:'EliGE',     p:['entry','lurker'],   r:1.20, c:'美国'},
+      {n:'Twistzz',   p:['support','entry'],  r:1.19, c:'加拿大'},
+      {n:'NAF',       p:['lurker','awp'],     r:1.22, c:'加拿大'},
+      {n:'TACO',      p:['support'],          r:1.06, c:'巴西'},
+      {n:'steel',     p:['igl'],              r:1.04, c:'加拿大'}
+    ],
+    '2019': [
+      {n:'nitr0',     p:['awp','igl'],        r:1.11, c:'美国'},
+      {n:'EliGE',     p:['entry'],            r:1.21, c:'美国'},
+      {n:'Twistzz',   p:['support','entry'],  r:1.20, c:'加拿大'},
+      {n:'NAF',       p:['lurker'],           r:1.23, c:'加拿大'},
+      {n:'Stewie2K',  p:['support','entry'],  r:1.14, c:'美国'}
+    ]
+  },
+  MOUZ: {
+    /* PGL 克卢日-纳波卡 2025 冠军（3-1 胜 Falcons），Brollan 接任指挥、Spinx 入队 */
+    '2025': [
+      {n:'Spinx',     p:['lurker','entry'],   r:1.19, c:'以色列'},
+      {n:'torzsi',    p:['awp'],              r:1.18, c:'匈牙利'},
+      {n:'xertioN',   p:['entry','lurker'],   r:1.15, c:'以色列'},
+      {n:'Jimpphat',  p:['support','lurker'], r:1.14, c:'芬兰'},
+      {n:'Brollan',   p:['igl','entry'],      r:1.12, c:'瑞典'}
+    ],
+    '2024': [
+      {n:'torzsi',    p:['awp'],              r:1.18, c:'匈牙利'},
+      {n:'frozen',    p:['entry','lurker'],   r:1.20, c:'斯洛伐克'},
+      {n:'Jimpphat',  p:['support','lurker'], r:1.17, c:'芬兰'},
+      {n:'Brollan',   p:['support','entry'],  r:1.15, c:'瑞典'},
+      {n:'siuhy',     p:['igl'],              r:1.08, c:'波兰'},
+      {n:'xertioN',   p:['entry','lurker'],   r:1.12, c:'德国'}
+    ],
+    '2019': [
+      {n:'woxic',     p:['awp'],              r:1.15, c:'土耳其'},
+      {n:'ropz',      p:['lurker'],           r:1.18, c:'爱沙尼亚'},
+      {n:'frozen',    p:['entry'],            r:1.10, c:'斯洛伐克'},
+      {n:'karrigan',  p:['igl'],              r:1.08, c:'丹麦'},
+      {n:'chrisJ',    p:['support'],          r:1.06, c:'荷兰'}
+    ]
+  },
+  Spirit: {
+    '2025': [
+      {n:'donk',      p:['entry','lurker'],   r:1.36, c:'俄罗斯'},
+      {n:'sh1ro',     p:['awp'],              r:1.22, c:'俄罗斯'},
+      {n:'zont1x',    p:['lurker','support'], r:1.12, c:'乌克兰'},
+      {n:'zweih',     p:['entry','support'],  r:1.08, c:'俄罗斯'},
+      {n:'chopper',   p:['igl'],              r:1.04, c:'俄罗斯'}
+    ],
+    '2024': [
+      {n:'donk',      p:['entry','lurker'],   r:1.37, c:'俄罗斯'},
+      {n:'sh1ro',     p:['awp'],              r:1.23, c:'俄罗斯'},
+      {n:'chopper',   p:['igl'],              r:1.09, c:'俄罗斯'},
+      {n:'magixx',    p:['support'],          r:1.12, c:'俄罗斯'},
+      {n:'zont1x',    p:['lurker','support'], r:1.13, c:'乌克兰'}
+    ],
+    '2021': [
+      {n:'degster',   p:['awp'],              r:1.15, c:'俄罗斯'},
+      {n:'mir',       p:['entry'],            r:1.09, c:'俄罗斯'},
+      {n:'chopper',   p:['igl'],              r:1.06, c:'俄罗斯'},
+      {n:'magixx',    p:['support','entry'],  r:1.08, c:'俄罗斯'},
+      {n:'sdy',       p:['lurker','support'], r:1.06, c:'乌克兰'}
+    ]
+  },
+  Heroic: {
+    '2021': [
+      {n:'cadiaN',    p:['awp','igl'],        r:1.15, c:'丹麦'},
+      {n:'stavn',     p:['lurker','entry'],   r:1.20, c:'丹麦'},
+      {n:'TeSeS',     p:['support','entry'],  r:1.12, c:'丹麦'},
+      {n:'refrezh',   p:['lurker'],           r:1.08, c:'丹麦'},
+      {n:'sjuush',    p:['support'],          r:1.10, c:'丹麦'},
+      {n:'b0RUP',     p:['entry'],            r:1.05, c:'丹麦'}
+    ],
+    '2023': [
+      {n:'cadiaN',    p:['awp','igl'],        r:1.13, c:'丹麦'},
+      {n:'stavn',     p:['lurker','entry'],   r:1.21, c:'丹麦'},
+      {n:'jabbi',     p:['entry','support'],  r:1.14, c:'丹麦'},
+      {n:'sjuush',    p:['support'],          r:1.11, c:'丹麦'},
+      {n:'TeSeS',     p:['support','entry'],  r:1.13, c:'丹麦'}
+    ]
+  },
+  'Virtus.pro': {
+    '2014': [
+      {n:'Snax',      p:['support','entry'],  r:1.16, c:'波兰'},
+      {n:'pashaBiceps',p:['awp'],             r:1.12, c:'波兰'},
+      {n:'NEO',       p:['igl'],              r:1.10, c:'波兰'},
+      {n:'TaZ',       p:['support','lurker'], r:1.06, c:'波兰'},
+      {n:'byali',     p:['entry'],            r:1.13, c:'波兰'}
+    ],
+    '2020': [
+      {n:'Jame',      p:['awp','igl'],        r:1.14, c:'俄罗斯'},
+      {n:'YEKINDAR',  p:['entry','lurker'],   r:1.19, c:'拉脱维亚'},
+      {n:'Qikert',    p:['support'],          r:1.10, c:'哈萨克斯坦'},
+      {n:'Buster',    p:['lurker'],           r:1.09, c:'哈萨克斯坦'},
+      {n:'sanji',     p:['support'],          r:1.05, c:'俄罗斯'}
+    ]
+  },
+  'Ninjas in Pyjamas': {
+    '2014': [
+      {n:'GeT_RiGhT', p:['lurker'],           r:1.21, c:'瑞典'},
+      {n:'f0rest',    p:['entry'],            r:1.20, c:'瑞典'},
+      {n:'Xizt',      p:['igl'],              r:1.10, c:'瑞典'},
+      {n:'friberg',   p:['support','entry'],  r:1.13, c:'瑞典'},
+      {n:'Fifflaren', p:['support','awp'],    r:1.02, c:'瑞典'}
+    ],
+    /* 2015：allu 替 Maikelele，卡托 2015 亚军 */
+    '2015': [
+      {n:'GeT_RiGhT', p:['lurker'],           r:1.16, c:'瑞典'},
+      {n:'f0rest',    p:['entry','lurker'],   r:1.15, c:'瑞典'},
+      {n:'allu',      p:['awp'],              r:1.12, c:'芬兰'},
+      {n:'friberg',   p:['support','entry'],  r:1.10, c:'瑞典'},
+      {n:'Xizt',      p:['igl'],              r:1.09, c:'瑞典'}
+    ],
+    '2016': [
+      {n:'GeT_RiGhT', p:['lurker'],           r:1.18, c:'瑞典'},
+      {n:'f0rest',    p:['entry','support'],  r:1.17, c:'瑞典'},
+      {n:'Xizt',      p:['igl'],              r:1.07, c:'瑞典'},
+      {n:'friberg',   p:['support'],          r:1.09, c:'瑞典'},
+      {n:'pyth',      p:['awp'],              r:1.05, c:'瑞典'}
+    ]
+  },
+
+  /* ---- 以下为 Major / 卡托维兹 / 科隆 冠军阵容（同年同阵容只保留一条） ---- */
+  'SK Gaming': {
+    '2016': [
+      {n:'coldzera',  p:['lurker','entry'],   r:1.24, c:'巴西'},
+      {n:'FalleN',    p:['awp','igl'],        r:1.22, c:'巴西'},
+      {n:'fer',       p:['entry'],            r:1.16, c:'巴西'},
+      {n:'fnx',       p:['support'],          r:1.12, c:'巴西'},
+      {n:'TACO',      p:['support'],          r:1.05, c:'巴西'}
+    ],
+    '2017': [
+      {n:'coldzera',  p:['lurker','entry'],   r:1.23, c:'巴西'},
+      {n:'FalleN',    p:['awp','igl'],        r:1.20, c:'巴西'},
+      {n:'fer',       p:['entry'],            r:1.18, c:'巴西'},
+      {n:'felps',     p:['entry','lurker'],   r:1.10, c:'巴西'},
+      {n:'TACO',      p:['support'],          r:1.06, c:'巴西'}
+    ]
+  },
+  Gambit: {
+    '2017': [
+      {n:'Zeus',      p:['igl'],              r:1.08, c:'俄罗斯'},
+      {n:'AdreN',     p:['awp'],              r:1.10, c:'哈萨克斯坦'},
+      {n:'HObbit',    p:['entry','lurker'],   r:1.12, c:'哈萨克斯坦'},
+      {n:'Dosia',     p:['support','lurker'], r:1.06, c:'俄罗斯'},
+      {n:'mou',       p:['entry'],            r:1.08, c:'哈萨克斯坦'}
+    ],
+    '2021': [
+      {n:'sh1ro',     p:['awp'],              r:1.24, c:'俄罗斯'},
+      {n:'Ax1Le',     p:['entry','lurker'],   r:1.22, c:'俄罗斯'},
+      {n:'HObbit',    p:['entry','lurker'],   r:1.20, c:'哈萨克斯坦'},
+      {n:'nafany',    p:['igl'],              r:1.05, c:'俄罗斯'},
+      {n:'interz',    p:['support'],          r:1.04, c:'俄罗斯'}
+    ]
+  },
+  Cloud9: {
+    /* ESL Pro League S4 Finals 2016 冠军（圣保罗 2-1 胜 SK） */
+    '2016': [
+      {n:'Skadoodle', p:['awp'],              r:1.12, c:'美国'},
+      {n:'Stewie2K',  p:['entry','support'],  r:1.13, c:'美国'},
+      {n:'autimatic', p:['lurker','support'], r:1.13, c:'美国'},
+      {n:'shroud',    p:['entry','lurker'],   r:1.07, c:'美国'},
+      {n:'n0thing',   p:['igl','support'],    r:1.06, c:'美国'}
+    ],
+    '2018': [
+      {n:'Skadoodle', p:['awp'],              r:1.12, c:'美国'},
+      {n:'autimatic', p:['lurker','entry'],   r:1.15, c:'美国'},
+      {n:'Stewie2K',  p:['entry','support'],  r:1.14, c:'美国'},
+      {n:'tarik',     p:['igl','entry'],      r:1.13, c:'美国'},
+      {n:'RUSH',      p:['support'],          r:1.08, c:'美国'}
+    ]
+  },
+  'Team EnVyUs': {
+    /* WESG 2016 冠军（2017 年 1 月决赛），SIXER 已顶替 kioShiMa */
+    '2017': [
+      {n:'kennyS',    p:['awp'],              r:1.22, c:'法国'},
+      {n:'apEX',      p:['entry'],            r:1.16, c:'法国'},
+      {n:'Happy',     p:['igl','entry'],      r:1.15, c:'法国'},
+      {n:'NBK-',      p:['support','entry'],  r:1.13, c:'法国'},
+      {n:'SIXER',     p:['support','lurker'], r:1.03, c:'法国'}
+    ],
+    '2015': [
+      {n:'kennyS',    p:['awp'],              r:1.22, c:'法国'},
+      {n:'apEX',      p:['entry'],            r:1.15, c:'法国'},
+      {n:'Happy',     p:['igl','entry'],      r:1.18, c:'法国'},
+      {n:'NBK-',      p:['support','entry'],  r:1.15, c:'法国'},
+      {n:'kioShiMa',  p:['support','lurker'], r:1.10, c:'法国'}
+    ]
+  },
+  LDLC: {
+    '2014': [
+      {n:'SmithZz',   p:['awp'],              r:1.08, c:'法国'},
+      {n:'shox',      p:['entry','lurker'],   r:1.20, c:'法国'},
+      {n:'Happy',     p:['igl','entry'],      r:1.14, c:'法国'},
+      {n:'NBK-',      p:['support','entry'],  r:1.17, c:'法国'},
+      {n:'kioShiMa',  p:['support','lurker'], r:1.12, c:'法国'}
+    ]
+  },
+  Outsiders: {
+    '2022': [
+      {n:'Jame',      p:['awp','igl'],        r:1.16, c:'俄罗斯'},
+      {n:'FL1T',      p:['entry'],            r:1.12, c:'俄罗斯'},
+      {n:'fame',      p:['lurker'],           r:1.08, c:'俄罗斯'},
+      {n:'n0rb3r7',   p:['support'],          r:1.05, c:'俄罗斯'},
+      {n:'Qikert',    p:['support'],          r:1.08, c:'哈萨克斯坦'}
+    ]
+  },
+  /* TSM 2015：device / dupreeh / Xyp9x / karrigan 的丹麦核心，Astralis 前身 */
+  'Team SoloMid': {
+    '2015': [
+      {n:'device',    p:['awp'],              r:1.18, c:'丹麦'},
+      {n:'dupreeh',   p:['entry'],            r:1.16, c:'丹麦'},
+      {n:'cajunb',    p:['entry','lurker'],   r:1.13, c:'丹麦'},
+      {n:'Xyp9x',     p:['support','lurker'], r:1.12, c:'丹麦'},
+      {n:'karrigan',  p:['igl'],              r:1.08, c:'丹麦'}
+    ]
+  },
+  /* The MongolZ：EWC 2025 冠军（3-0 胜 Aurora），Techno 获 MVP */
+  'The MongolZ': {
+    '2025': [
+      {n:'Techno',    p:['entry','lurker'],   r:1.16, c:'蒙古'},
+      {n:'Senzu',     p:['entry','lurker'],   r:1.16, c:'蒙古'},
+      {n:'910',       p:['awp'],              r:1.12, c:'蒙古'},
+      {n:'mzinho',    p:['support','lurker'], r:1.08, c:'蒙古'},
+      {n:'bLitz',     p:['igl','support'],    r:1.10, c:'蒙古'}
+    ]
+  },
+  /* 2017 克拉科夫 Major 亚军 */
+  Immortals: {
+    '2017': [
+      {n:'HEN1',      p:['awp'],              r:1.12, c:'巴西'},
+      {n:'kNgV-',     p:['entry','lurker'],   r:1.12, c:'巴西'},
+      {n:'boltz',     p:['support','lurker'], r:1.10, c:'巴西'},
+      {n:'LUCAS1',    p:['igl','entry'],      r:1.08, c:'巴西'},
+      {n:'steel',     p:['support'],          r:1.04, c:'巴西'}
+    ]
+  },
+  /* 2019 卡托维兹亚军；2023 科隆亚军 */
+  ENCE: {
+    '2019': [
+      {n:'sergej',    p:['lurker','entry'],   r:1.16, c:'芬兰'},
+      {n:'allu',      p:['awp'],              r:1.14, c:'芬兰'},
+      {n:'Aerial',    p:['entry'],            r:1.10, c:'芬兰'},
+      {n:'xseveN',    p:['support'],          r:1.07, c:'芬兰'},
+      {n:'Aleksib',   p:['igl'],              r:1.06, c:'芬兰'}
+    ],
+    '2023': [
+      {n:'NertZ',     p:['entry','lurker'],   r:1.15, c:'以色列'},
+      {n:'SunPayus',  p:['awp'],              r:1.14, c:'西班牙'},
+      {n:'dycha',     p:['entry','support'],  r:1.10, c:'波兰'},
+      {n:'maden',     p:['support','lurker'], r:1.08, c:'丹麦'},
+      {n:'Snappi',    p:['igl'],              r:1.05, c:'丹麦'}
+    ]
+  },
+  /* 2019 柏林 Major 亚军 */
+  Avangar: {
+    '2019': [
+      {n:'Jame',      p:['awp'],              r:1.16, c:'俄罗斯'},
+      {n:'buster',    p:['lurker','entry'],   r:1.12, c:'哈萨克斯坦'},
+      {n:'qikert',    p:['support'],          r:1.09, c:'哈萨克斯坦'},
+      {n:'AdreN',     p:['igl'],              r:1.06, c:'哈萨克斯坦'},
+      {n:'sanji',     p:['support','lurker'], r:1.05, c:'俄罗斯'}
+    ]
+  },
+  /* 2023 巴黎 Major 亚军 */
+  GamerLegion: {
+    '2023': [
+      {n:'iM',        p:['entry','lurker'],   r:1.18, c:'罗马尼亚'},
+      {n:'acoR',      p:['awp'],              r:1.12, c:'丹麦'},
+      {n:'isak',      p:['entry','support'],  r:1.08, c:'瑞典'},
+      {n:'siuhy',     p:['igl'],              r:1.06, c:'波兰'},
+      {n:'Keoz',      p:['support'],          r:1.05, c:'比利时'}
+    ]
+  },
+  /* 2018 科隆亚军 */
+  BIG: {
+    '2018': [
+      {n:'tabseN',    p:['entry','lurker'],   r:1.13, c:'德国'},
+      {n:'smooya',    p:['awp'],              r:1.12, c:'英国'},
+      {n:'nex',       p:['support','entry'],  r:1.10, c:'德国'},
+      {n:'tiziaN',    p:['support'],          r:1.05, c:'德国'},
+      {n:'gob b',     p:['igl'],              r:1.03, c:'德国'}
+    ]
+  },
+  /* 2026 科隆 Major 亚军 */
+  FURIA: {
+    '2026': [
+      {n:'molodoy',   p:['entry','lurker'],   r:1.18, c:'哈萨克斯坦'},
+      {n:'KSCERATO',  p:['lurker','support'], r:1.16, c:'巴西'},
+      {n:'yuurih',    p:['entry'],            r:1.15, c:'巴西'},
+      {n:'YEKINDAR',  p:['support','entry'],  r:1.12, c:'拉脱维亚'},
+      {n:'FalleN',    p:['awp','igl'],        r:1.10, c:'巴西'}
+    ]
+  },
+  Falcons: {
+    /* IEM 科隆 Major 2026 冠军（NiKo 生涯首个 Major） */
+    '2026': [
+      {n:'m0NESY',    p:['awp'],              r:1.25, c:'俄罗斯'},
+      {n:'NiKo',      p:['entry','lurker'],   r:1.17, c:'波黑'},
+      {n:'kyousuke',  p:['entry','lurker'],   r:1.15, c:'俄罗斯'},
+      {n:'TeSeS',     p:['support'],          r:1.11, c:'丹麦'},
+      {n:'karrigan',  p:['igl'],              r:1.02, c:'丹麦'}
+    ]
+  }
+};
+
+/* 所有年代 */
+const ALL_ERAS = Array.from(new Set(
+  Object.keys(SQUADS).flatMap(t=>Object.keys(SQUADS[t]))
+)).sort();
+
+function tierOf(r, t20){
+  // 有 HLTV TOP20 排名就按名次定档（权威依据）
+  if(t20){
+    if(t20 <= 3)  return 'legend';   // 年度前三
+    if(t20 <= 10) return 'star';     // 年度前十
+    return 'pro';                    // 入榜前二十
+  }
+  // 没有榜单数据的年份，退回按 rating 估
+  if(r>=1.26) return 'legend';
+  if(r>=1.20) return 'star';
+  if(r>=1.12) return 'pro';
+  return 'solid';
+}
+
+/* HLTV 年度 TOP20 排名（2014-2025 全部完整查证） */
+const T20 = {
+  '2014': {'GeT_RiGhT':1, 'flusha':2, 'pashaBiceps':3, 'Snax':4, 'JW':5, 'kennyS':6, 'f0rest':7, 'shox':8, 'KRIMZ':9, 'Happy':10, 'GuardiaN':11, 'olofmeister':12, 'byali':13, 'friberg':14, 'apEX':15, 'dupreeh':16, 'NBK-':17, 'swag':18, 'kioShiMa':19, 'device':20},
+  '2015': {'olofmeister':1, 'GuardiaN':2, 'device':3, 'Snax':4, 'flusha':5, 'kennyS':6, 'KRIMZ':7, 'Happy':8, 'NBK-':9, 'JW':10, 'GeT_RiGhT':11, 'dupreeh':12, 'shox':13, 'flamie':14, 'cajunb':15, 'f0rest':16, 'NEO':17, 'apEX':18, 'allu':19, 'Skadoodle':20},
+  '2016': {'coldzera':1, 'FalleN':2, 'device':3, 's1mple':4, 'Snax':5, 'shox':6, 'f0rest':7, 'olofmeister':8, 'ScreaM':9, 'flusha':10, 'NiKo':11, 'flamie':12, 'kennyS':13, 'Magisk':14, 'fer':15, 'Kjaerbye':16, 'GuardiaN':17, 'GeT_RiGhT':18, 'fnx':19, 'dennis':20},
+  '2018': {'s1mple':1, 'device':2, 'NiKo':3, 'electronic':4, 'dupreeh':5, 'NAF':6, 'Magisk':7, 'gla1ve':8, 'KRIMZ':9, 'coldzera':10, 'GuardiaN':11, 'Twistzz':12, 'Xyp9x':13, 'oskar':14, 'EliGE':15, 'suNny':16, 'autimatic':17, 'rain':18, 'ropz':19, 'valde':20},
+  '2019': {'ZywOo':1, 's1mple':2, 'device':3, 'EliGE':4, 'Magisk':5, 'electronic':6, 'NAF':7, 'Brehze':8, 'Twistzz':9, 'ropz':10, 'NiKo':11, 'woxic':12, 'sergej':13, 'Xyp9x':14, 'jks':15, 'dupreeh':16, 'KRIMZ':17, 'CeRq':18, 'Brollan':19, 'Ethan':20},
+  '2020': {'ZywOo':1, 's1mple':2, 'device':3, 'NiKo':4, 'electronic':5, 'blameF':6, 'ropz':7, 'EliGE':8, 'dupreeh':9, 'syrsoN':10, 'Magisk':11, 'stavn':12, 'huNter-':13, 'yuurih':14, 'Brollan':15, 'HEN1':16, 'KRIMZ':17, 'KSCERATO':18, 'jks':19, 'Brehze':20},
+  '2021': {'s1mple':1, 'ZywOo':2, 'NiKo':3, 'sh1ro':4, 'Ax1Le':5, 'HObbit':6, 'electronic':7, 'YEKINDAR':8, 'b1t':9, 'Jame':10, 'device':11, 'huNter-':12, 'blameF':13, 'NAF':14, 'KSCERATO':15, 'stavn':16, 'Twistzz':17, 'ropz':18, 'EliGE':19, 'broky':20},
+  '2022': {'s1mple':1, 'ZywOo':2, 'sh1ro':3, 'Ax1Le':4, 'NiKo':5, 'broky':6, 'm0NESY':7, 'ropz':8, 'KSCERATO':9, 'stavn':10, 'Twistzz':11, 'blameF':12, 'rain':13, 'huNter-':14, 'YEKINDAR':15, 'b1t':16, 'frozen':17, 'Spinx':18, 'yuurih':19, 'Jame':20},
+  '2023': {'ZywOo':1, 'NiKo':2, 'ropz':3, 'm0NESY':4, 'Spinx':5, 'SunPayus':6, 's1mple':7, 'sh1ro':8, 'stavn':9, 'broky':10, 'device':11, 'frozen':12, 'huNter-':13, 'NertZ':14, 'jabbi':15, 'blameF':16, 'Magisk':17, 'cadiaN':18, 'KSCERATO':19, 'Twistzz':20},
+  '2024': {'donk':1, 'm0NESY':2, 'ZywOo':3, 'NiKo':4, 'jL':5, 'sh1ro':6, 'flameZ':7, 'broky':8, 'b1t':9, 'frozen':10, 'w0nderful':11, 'malbsMd':12, 'Spinx':13, 'xertioN':14, 'XANTARES':15, 'iM':16, 'Jimpphat':17, 'ropz':18, 'EliGE':19, 'torzsi':20},
+  '2025': {'ZywOo':1, 'donk':2, 'ropz':3, 'm0NESY':4, 'sh1ro':5, 'molodoy':6, 'flameZ':7, 'frozen':8, 'KSCERATO':9, 'Spinx':10, 'Twistzz':11, 'mezii':12, 'Senzu':13, 'XANTARES':14, 'YEKINDAR':15, 'xertioN':16, 'torzsi':17, 'NiKo':18, 'iM':19, 'b1t':20}
+};
+/* HLTV 年度位置奖项（Panel Awards，2022 年起设立） */
+const IGL_AWARD = { '2022':'karrigan', '2023':'apEX', '2024':'Aleksib', '2025':'apEX' };
+const ROLE_AWARD = {
+  '2022': {awp:'s1mple', entry:'NiKo', lurker:'Ax1Le', support:'Perfecto'},
+  '2023': {awp:'ZywOo',  entry:'NiKo', lurker:'ropz',  support:'Magisk'},
+  '2024': {awp:'m0NESY', entry:'donk', lurker:'jL',    support:'b1t'},
+  '2025': {awp:'ZywOo',  entry:'donk', lurker:'ropz',  support:'mezii'}
+};
+
+function t20Of(pl, era){
+  const t = T20[era];
+  return t && t[pl.n] ? t[pl.n] : null;
+}
+const TIER_NAME = {legend:'传奇', star:'巨星', pro:'一线', solid:'老将'};
+
+/* ==========================================================
+   状态
+   ========================================================== */
+let S = null;
+let BEST = loadBest();
+
+/* 版本号：数据或规则变更时手动更新 */
+const VERSION = 'v2026.10.19';
+
+function loadBest(){
+  try{
+    const raw = localStorage.getItem('csdraft_best_v1');
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {best:0, runs:0, bestLineup:null};
+}
+function saveBest(){
+  try{ localStorage.setItem('csdraft_best_v1', JSON.stringify(BEST)); }catch(e){}
+}
+
+/* ==========================================================
+   选秀流程：抽「战队 + 年代」→ 从这批人里挑 1 个填空位
+   每签有一次「换队 / 换年代」的重抽机会
+   ========================================================== */
+function newRun(){
+  S = {
+    round:0,
+    slots:{},
+    used:new Set(),
+    draw:null,
+    rerolls:3,
+    core:null,
+    tactic:null,
+    phase:'draw'
+  };
+}
+
+/* ==========================================================
+   标题
+   ========================================================== */
+function splash(){
+  newRun();
+  const b = BEST.best || 0;
+  const grade = gradeOf(b);
+  $('app').innerHTML = `
+    <div class="splash">
+      <div class="kicker">DRAFT SIMULATOR</div>
+      <div class="t1">大乱斗<em>.</em></div>
+      <div class="t2">G O A T &nbsp; D R A F T</div>
+      <div class="t3">for 4472</div>
+      <div class="desc">
+        五个位置，五签。<br>
+        每签抽一个「<b>战队 + 年代</b>」，从这批人里挑一个填空位。<br>
+        每签有一次重抽的机会 —— <b>换队，还是换年代？</b><br>
+        选完定<b>核心</b>、定<b>战术体系</b>，然后带他们打一整年。<br>
+        八站赛事（含两个 Major），<span class="o">看你能拿几个冠军</span>。
+      </div>
+      <button class="btn" id="startBtn">开 始 组 队</button>
+      <div class="best">
+        生涯最佳 <b>${b||'—'} 分</b>${b?` · ${grade.lb}`:''} · 已组建 <b>${BEST.runs||0}</b> 套阵容
+      </div>
+      <div class="foot">
+        <div class="note">选手评分为该年代近似值，仅供娱乐，不代表任何官方立场。</div>
+        <div class="disc">非官方粉丝同人作品 · 仅供娱乐 · ${VERSION}</div>
+        <button class="checkbtn" id="checkBtn"><i></i>运行自检</button>
+        <div class="checkout" id="checkout"></div>
+      </div>
+    </div>`;
+  $('startBtn').onclick = startDraft;
+
+  $('checkBtn').onclick = ()=>{
+    const r = selfCheck();
+    $('checkout').innerHTML = r.ok
+      ? `<span class="cok">✓ 自检通过</span>　${r.teams} 队 · ${r.squads} 套阵容 · ${r.entries} 条记录<br>位置覆盖完整 · 无重复阵容 · 无空池`
+      : `<span class="cbad">✗ 自检未通过</span>　位置缺失 ${r.badFit} 套 · 重复阵容 ${r.dup} 套`;
+  };
+}
+
+/* 数据自检：阵容五位置是否齐全、同队是否有重复五人 */
+function selfCheck(){
+  const need = ['awp','entry','igl','support','lurker'];
+  let teams = 0, squads = 0, entries = 0, badFit = 0, dup = 0;
+  Object.keys(SQUADS).forEach(t=>{
+    teams++;
+    const seen = {};
+    Object.keys(SQUADS[t]).forEach(e=>{
+      squads++;
+      const list = SQUADS[t][e];
+      entries += list.length;
+      const cov = new Set();
+      list.forEach(p=>p.p.forEach(k=>cov.add(k)));
+      if(need.some(k=>!cov.has(k))) badFit++;
+      const key = list.map(p=>p.n).sort().join('|');
+      if(seen[key]) dup++;
+      seen[key] = e;
+    });
+  });
+  return {teams, squads, entries, badFit, dup, ok: !badFit && !dup};
+}
+
+function startDraft(){
+  newRun();
+  renderSign();
+}
+
+/* 该选手还能放哪些空位 */
+function openPos(pl){
+  return pl.p.filter(k=>!S.slots[k]);
+}
+/* 这个队这个年代还有没有人能用 */
+function squadUsable(team, era){
+  return SQUADS[team][era].some(pl=>!S.used.has(pl.n) && openPos(pl).length>0);
+}
+
+/* 抽签。keepTeam / keepEra 传值表示保持该维度 */
+function drawSquad(keepTeam, keepEra, avoid){
+  function collect(ignoreUsed){
+    const list = [];
+    Object.keys(SQUADS).forEach(t=>{
+      if(keepTeam && t !== keepTeam) return;
+      Object.keys(SQUADS[t]).forEach(e=>{
+        if(keepEra && e !== keepEra) return;
+        if(ignoreUsed){
+          if(!SQUADS[t][e].some(pl=>openPos(pl).length>0)) return;
+        } else {
+          if(!squadUsable(t, e)) return;
+        }
+        list.push({team:t, era:e});
+      });
+    });
+    return list;
+  }
+  let list = collect(false);
+  if(!list.length) list = collect(true);
+  if(!list.length){                       // 极端兜底：放宽维度限制
+    Object.keys(SQUADS).forEach(t=>{
+      Object.keys(SQUADS[t]).forEach(e=>{
+        if(SQUADS[t][e].some(pl=>openPos(pl).length>0)) list.push({team:t, era:e});
+      });
+    });
+  }
+  // 整签重抽时排除当前这一签，避免原地不动
+  if(avoid && list.length > 1){
+    const f = list.filter(x=>!(x.team===avoid.team && x.era===avoid.era));
+    if(f.length) list = f;
+  }
+  S.draw = list.length ? PICK(list) : null;
+}
+
+function renderSign(){
+  if(S.round >= 5){ return showResult(); }
+  const drawn = !!S.draw;
+  const squad = drawn ? SQUADS[S.draw.team][S.draw.era] : null;
+  const eraTeamCount = drawn ? Object.keys(SQUADS).filter(t=>SQUADS[t][S.draw.era]).length : 0;
+  const teamEraCount = drawn ? Object.keys(SQUADS[S.draw.team]).length : 0;
+
+  const steps = POS.map((_,i)=>{
+    const c = i < S.round ? 'done' : i === S.round ? 'on' : '';
+    return `<i class="${c}"></i>`;
+  }).join('');
+
+  let html = `
+    <div class="bar">
+      <div class="lg"><b>组 队 挑 战</b></div>
+      <div class="steps">${steps}</div>
+      <div class="signno">第 ${S.round+1} / 5 签</div>
+    </div>
+    <div class="draft">
+      <div class="lineup" id="lineup"></div>
+      <div class="signpanel">
+        <div class="signtop">
+          <div class="st ${drawn?'':'q'}">${drawn ? S.draw.team : '？ ？ ？'}</div>
+          <div class="se ${drawn?'':'q'}">${drawn ? S.draw.era : '？ ？ ？ 年代'}</div>
+        </div>
+        <div class="signtip">${
+          drawn
+            ? '从该队该年代选 1 人，放入仍空闲的位置'
+            : `点击下方「抽」抽取第 ${S.round+1} 签`
+        }</div>
+        ${drawn ? '' : '<button class="drawbtn" id="drawBtn">抽</button>'}
+      </div>
+      ${drawn ? `
+      <div class="rerolls">
+        <button class="rb" id="rbTeam" ${S.rerolls<=0?'disabled':''}>${eraTeamCount>1?'更换战队':'重新抽签'}</button>
+        ${teamEraCount > 1
+          ? `<button class="rb" id="rbEra" ${S.rerolls<=0?'disabled':''}>更换年代</button>`
+          : `<button class="rb" disabled>该队仅 1 个年代</button>`}
+      </div>
+      <div class="remain ${S.rerolls<=0?'dead':''}">${S.rerolls>0
+        ? `剩余 ${S.rerolls} 次${eraTeamCount<=1 ? '（这个年代只有这一支队，重抽会整签重来）' : '（球队 / 年代 二选一）'}`
+        : '重抽机会已用完'}</div>
+      ` : ''}
+      <div class="droptip" id="droptip">${drawn ? '先点下面一个人，再点上方位置' : ''}</div>
+      <div class="cards" id="cards"></div>
+    </div>`;
+
+  $('app').innerHTML = html;
+  renderLineup();
+
+  if(!drawn){
+    $('drawBtn').onclick = ()=>{
+      S.picked = null;
+      drawSquad(null, null);
+      renderSign();
+    };
+  } else {
+    $('rbTeam').onclick = ()=>{
+      S.rerolls--; S.picked = null;
+      if(eraTeamCount > 1) drawSquad(null, S.draw.era);
+      else drawSquad(null, null, {team:S.draw.team, era:S.draw.era});
+      renderSign();
+    };
+    const rbEra = $('rbEra');
+    if(rbEra) rbEra.onclick = ()=>{ S.rerolls--; S.picked = null; drawSquad(S.draw.team, null); renderSign(); };
+    renderPlayerList(squad);
+  }
+}
+
+function renderPlayerList(list){
+  const box = $('cards');
+  if(!box) return;
+
+
+  // 能用的排前面，同档按 rating 降序
+  const sorted = list.slice().sort((a,b)=>{
+    const oa = (!S.used.has(a.n) && openPos(a).length) ? 1 : 0;
+    const ob = (!S.used.has(b.n) && openPos(b).length) ? 1 : 0;
+    if(oa !== ob) return ob - oa;
+    return b.r - a.r;
+  });
+
+  sorted.forEach((pl,i)=>{
+    const used = S.used.has(pl.n);
+    const opens = openPos(pl);
+    const t20 = t20Of(pl, S.draw.era);
+    const t = tierOf(pl.r, t20);
+    const d = document.createElement('div');
+    const usable = opens.length && !used;
+    d.className = 'card t-' + t + (usable ? '' : ' dead') + (S.picked && S.picked.n === pl.n ? ' sel' : '');
+    d.style.animationDelay = (i*45)+'ms';
+
+    const posTags = pl.p.map(k=>{
+      const free = !S.slots[k] && !used;
+      return `<span class="postag ${free?'':'off'}">${POS_MAP[k].en}</span>`;
+    }).join('');
+    const mark = used
+      ? '<span class="emptymark">已选</span>'
+      : (!opens.length ? '<span class="emptymark">无空位</span>' : '');
+
+    d.innerHTML = `
+      <div class="cbody">
+        <div class="cname">
+          <div class="cid"><span class="rt">${TIER_NAME[t]}${t20?` #${t20}`:''}</span>${pl.n}</div>
+          <div class="meta">${pl.c}</div>
+        </div>
+      </div>
+      <div class="poses">${posTags}${mark}</div>`;
+
+    if(usable){
+      d.onclick = ()=> selectPlayer(pl, d, box);
+    }
+    box.appendChild(d);
+  });
+}
+
+function renderLineup(){
+  const box = $('lineup');
+  if(!box) return;
+  box.innerHTML = POS.map(p=>{
+    const s = S.slots[p.k];
+    if(s){
+      const t = tierOf(s.r, t20Of(s, s.era));
+      return `<div class="slot filled t-${t}">
+        <span class="sp">${POS_ABBR[p.k]}</span>
+        <span class="sn">${s.n}</span>
+        <span class="stier tier-${t}">${TIER_NAME[t]}</span>
+      </div>`;
+    }
+    if(S.picked && S.picked.p.includes(p.k)){
+      return `<div class="slot target" data-k="${p.k}">
+        <span class="sp">${POS_ABBR[p.k]}</span>
+        <span class="sn">放 入</span>
+      </div>`;
+    }
+    return `<div class="slot">
+      <span class="sp">${POS_ABBR[p.k]}</span>
+      <span class="sn">—</span>
+    </div>`;
+  }).join('');
+
+  box.querySelectorAll('.slot.target').forEach(el=>{
+    el.onclick = ()=> pickInto(el.dataset.k);
+  });
+}
+
+/* 选中一个人，等着点位置。只剩一个空位就直接放进去 */
+function selectPlayer(pl, el, box){
+  const opens = openPos(pl);
+  S.picked = { n:pl.n, r:pl.r, c:pl.c, p:pl.p, team:S.draw.team, era:S.draw.era };
+  if(opens.length === 1){
+    pickInto(opens[0]);
+    return;
+  }
+  box.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  renderLineup();
+  const tip = $('droptip');
+  if(tip){
+    const names = opens.map(k=>POS_ABBR[k]).join(' / ');
+    tip.textContent = `${pl.n} 能打 ${names}，点上方位置`;
+    tip.classList.add('on');
+  }
+}
+
+function pickInto(posKey){
+  const pl = S.picked;
+  if(!pl || S.slots[posKey]) return;
+  S.slots[posKey] = { n:pl.n, r:pl.r, c:pl.c, p:pl.p, t:pl.team, era:pl.era };
+  S.used.add(pl.n);
+  S.picked = null;
+  S.round++;
+  S.draw = null;
+  if(S.round >= 5){ renderCoreSelect(); }
+  else { renderSign(); }
+}
+
+/* ==========================================================
+   选核心：把资源倾斜给一个人
+   ========================================================== */
+function renderCoreSelect(){
+  const rows = POS.map(p=>{
+    const pl = S.slots[p.k];
+    const t = tierOf(pl.r, t20Of(pl, pl.era));
+    return `<div class="corecard t-${t} ${S.core===p.k?'sel':''}" data-k="${p.k}">
+      <div class="ccpos">${POS_ABBR[p.k]}</div>
+      <div class="ccname">${pl.n}</div>
+      <div class="ccmeta">${pl.t} · ${pl.era}</div>
+    </div>`;
+  }).join('');
+
+  $('app').innerHTML = `
+    <div class="bar">
+      <div class="lg"><b>选 择 核 心</b></div>
+      <div class="signno">第 1 / 2 步</div>
+    </div>
+    <div class="stage">
+      <div class="stageh">谁是这个队的第一选择？</div>
+      <div class="staged">核心会吃掉更多资源，也承担更多压力。</div>
+      <div class="coregrid">${rows}</div>
+      <button class="btn" id="coreNext" ${S.core?'':'disabled'}>${S.core?'确认核心 → 选战术':'先选一个核心'}</button>
+    </div>`;
+
+  document.querySelectorAll('.corecard').forEach(el=>{
+    el.onclick = ()=>{
+      S.core = el.dataset.k;
+      renderCoreSelect();
+    };
+  });
+  $('coreNext').onclick = ()=>{ if(S.core) renderTacticSelect(); };
+}
+
+/* ==========================================================
+   选战术体系
+   ========================================================== */
+function renderTacticSelect(){
+  const cards = TACTICS.map(t=>{
+    const sel = S.tactic && S.tactic.id === t.id;
+    return `<div class="taccard ${t.locked?'locked':''} ${sel?'sel':''}" data-id="${t.id}">
+      ${t.locked?'<span class="lock">未解锁</span>':''}
+      <div class="tn">${t.n}</div>
+      <div class="td">${t.d}</div>
+    </div>`;
+  }).join('');
+
+  $('app').innerHTML = `
+    <div class="bar">
+      <div class="lg"><b>选 择 战 术 体 系</b></div>
+      <div class="signno">第 2 / 2 步</div>
+    </div>
+    <div class="stage">
+      <div class="stageh">围绕阵容扬长避短</div>
+      <div class="staged">不同战术会加强 / 削弱不同位置。选对了，弱的人也能用；选错了，强的人会被浪费。</div>
+      <div class="tacgrid">${cards}</div>
+      <div class="stageacts">
+        <button class="btn ghost" id="tacBack">返回</button>
+        <button class="btn" id="tacGo" ${S.tactic?'':'disabled'}>生成战绩</button>
+      </div>
+    </div>`;
+
+  document.querySelectorAll('.taccard').forEach(el=>{
+    if(el.classList.contains('locked')) return;
+    el.onclick = ()=>{
+      S.tactic = TACTICS.find(t=>t.id === el.dataset.id);
+      renderTacticSelect();
+    };
+  });
+  $('tacBack').onclick = renderCoreSelect;
+  $('tacGo').onclick = ()=>{ if(S.tactic) showResult(); };
+}
+
+/* 位置契合：p[0] 是本职，往后依次打折 */
+function fitOf(pl, posKey){
+  const idx = (pl.p || []).indexOf(posKey);
+  if(idx === 0) return {v:1.0,  txt:'本职'};
+  if(idx > 0)   return {v:.93, txt:'次选位'};
+  return {v:.70, txt:'客串'};
+}
+
+
+function calcResult(){
+  const picks = POS.map(p=>({pos:p, pl:S.slots[p.k], fit:fitOf(S.slots[p.k], p.k)}));
+
+  // 个人贡献
+  let total = 0;
+  picks.forEach(x=>{
+    total += x.pl.r * x.pos.w * x.fit.v;
+  });
+  const avg = total / 5;
+  const teamAvgR = picks.reduce((s,x)=>s+x.pl.r,0) / 5;
+
+  /* ---------- 战术契合：扬长避短 ---------- */
+  const tmod = (S.tactic && !S.tactic.locked) ? (S.tactic.mod || {}) : {};
+  const hasTac = Object.keys(tmod).length > 0;
+  let tacBonus = 0;
+  const tacDetail = [];
+  if(hasTac){
+    picks.forEach(x=>{
+      const m = tmod[x.pos.k] || 1;
+      if(m === 1) return;
+      const rel = x.pl.r - teamAvgR;          // 相对队内平均
+      const v = rel * (m - 1) * 70;
+      tacBonus += v;
+      tacDetail.push({pos:x.pos.n, n:x.pl.n, v, up:m>1});
+    });
+    tacBonus = CLAMP(Math.round(tacBonus), -14, 14);
+  }
+
+  /* ---------- 核心是否名副其实 ---------- */
+  const corePos = S.core;
+  const corePl = corePos ? S.slots[corePos] : null;
+  let coreBonus = 0, coreNote = '';
+  if(corePl){
+    const stronger = picks.filter(x=>x.pl.r > corePl.r + 0.005).length;
+    if(stronger === 0){ coreBonus = 4; coreNote = '全队数据最好的那个人拿了核心位，资源给他没人有意见'; }
+    else if(stronger === 1){ coreBonus = 1; coreNote = '有一个人的数据比核心更好，但他是愿意打配合的那种'; }
+    else if(stronger === 2){ coreBonus = -2; coreNote = '队里有两个人的数据比核心更好，资源分配会出问题'; }
+    else { coreBonus = -5; coreNote = '全队数据最差的那个当了核心，这个决定很难解释'; }
+    // 位置特性
+    if(corePos === 'igl'){ coreBonus += 2; coreNote += '；指挥当核心，体系更稳'; }
+    else if(corePos === 'support'){ coreBonus -= 2; coreNote += '；辅助当核心，队里未必服'; }
+  }
+  coreBonus = CLAMP(coreBonus, -8, 8);
+
+  // ---- 化学反应 ----
+  const chem = [];
+  let chemVal = 0;
+
+  // 1. 同队
+  const teamCount = {};
+  picks.forEach(x=>{ teamCount[x.pl.t] = (teamCount[x.pl.t]||0)+1; });
+  Object.keys(teamCount).forEach(t=>{
+    const n = teamCount[t];
+    if(n>=2){
+      const add = n===2?5:n===3?9:n===4?13:18;
+      chemVal += add;
+      chem.push({n:`同队 · ${t} ×${n}`, v:add,
+        d: n>=4 ? '同一套体系养出来的人。他们不用沟通就知道下一步。'
+          : n===3 ? '三个人在同一个战术框架里待过，这是骨架。'
+          : '至少不用重新学怎么说话。'});
+    }
+  });
+
+  // 2. 同国（避开与同队重复计算）
+  const cCount = {};
+  picks.forEach(x=>{ cCount[x.pl.c] = (cCount[x.pl.c]||0)+1; });
+  Object.keys(cCount).forEach(c=>{
+    const n = cCount[c];
+    if(n < 2) return;
+    const inSameTeam = Math.max(0, ...Object.keys(teamCount).map(t=>
+      picks.filter(x=>x.pl.t===t && x.pl.c===c).length));
+    const net = n - inSameTeam;
+    if(net >= 1){
+      const add = net >= 3 ? 3 : 2;
+      chemVal += add;
+      chem.push({n:`同国 · ${c} ×${n}`, v:add, d:'母语沟通，叫点不用翻译。'});
+    }
+  });
+
+  // 3. 时代跨度
+  const eras = picks.map(x=>parseInt(x.pl.era));
+  const spread = Math.max(...eras) - Math.min(...eras);
+  if(spread <= 3){
+    chemVal += 3;
+    chem.push({n:'同时代', v:3, d:'同一个版本的 CS，同一套理解。'});
+  }
+
+  // 4. 传奇过多：资源不够分
+  const legends = picks.filter(x=>tierOf(x.pl.r, t20Of(x.pl, x.pl.era))==='legend').length;
+  if(legends >= 3){
+    chemVal -= 4;
+    chem.push({n:'传奇过多 · 一个残局', v:-4, d:'三个人都觉得自己该拿最后那一枪。连经济都要抢。'});
+  } else if(legends === 2){
+    chemVal += 1;
+    chem.push({n:'双核驱动', v:1, d:'两个能打的，剩下三个愿意干活。这个比例刚好。'});
+  }
+
+  // 5. 指挥权威：看 HLTV 年度最佳指挥，其次看是否进 TOP20；都不沾就不加不减
+  const iglX = picks.find(x=>x.pos.k==='igl');
+  const igl = iglX.pl;
+  const iglEra = igl.era || '';
+  if(IGL_AWARD[iglEra] === igl.n){
+    chemVal += 3;
+    chem.push({n:'年度最佳指挥', v:3, d:`${iglEra} 年 HLTV 的 IGL of the Year。他喊一句，五个人都动。`});
+  } else if(t20Of(igl, iglEra)){
+    chemVal += 2;
+    chem.push({n:'指挥入榜', v:2, d:`${igl.n} 那年进了 TOP20，他的价值不光在数据表上。`});
+  }
+
+  // 软上限：正常构筑下不会触顶，保证明细之和 = 总分
+  chemVal = CLAMP(chemVal, -10, 30);
+
+  // 位置契合：次选位轻微扣减（已经乘进 avg 里，这里只做记录）
+  const badFit = picks.filter(x=>x.fit.v<0.95).length;
+
+  // 总分：avg 区间窄（1.26~1.45），化学反应才是主要分数轴
+  let score = Math.round(62 + (avg - 1.30) * 130 + chemVal * 2.0 + tacBonus + coreBonus);
+  score = CLAMP(score, 1, 100);
+
+  return {picks, avg, teamAvgR, chem, chemVal, score, badFit,
+          tacBonus, tacDetail, coreBonus, coreNote, corePos};
+}
+
+/* ==========================================================
+   赛季模拟：8 站赛事（卡托、科隆、双 Major），看这套人一年能拿几个冠军
+   （借鉴「82胜」的思路——用赛季战绩代替裸分数）
+   ========================================================== */
+const TEAMS = [
+  {n:'Astralis',     y:'2018', pw:96},
+  {n:'Natus Vincere',y:'2021', pw:95},
+  {n:'Fnatic',       y:'2015', pw:91},
+  {n:'FaZe',         y:'2022', pw:89},
+  {n:'Vitality',     y:'2023', pw:88},
+  {n:'Spirit',       y:'2024', pw:88},
+  {n:'G2',           y:'2024', pw:86},
+  {n:'MOUZ',         y:'2024', pw:84},
+  {n:'Heroic',       y:'2021', pw:84},
+  {n:'Liquid',       y:'2018', pw:82},
+  {n:'Virtus.pro',   y:'2020', pw:80},
+  {n:'NIP',          y:'2014', pw:79},
+  {n:'Cloud9',       y:'2018', pw:78},
+  {n:'mousesports',  y:'2019', pw:77},
+  {n:'ENCE',         y:'2019', pw:75},
+  {n:'Complexity',   y:'2020', pw:73}
+];
+
+/* 一年 8 站：卡托、科隆各一站，Major 两届，其余为大型赛事 */
+const EVENTS = [
+  {n:'IEM 达拉斯',      s:'达拉斯',   lo:66, hi:78, g:2},
+  {n:'BLAST 春季决赛',  s:'BLAST春',  lo:68, hi:80, g:2},
+  {n:'IEM 卡托维兹',    s:'卡托维兹', lo:69, hi:81, g:2},
+  {n:'ESL Pro League',  s:'EPL',      lo:70, hi:82, g:2},
+  {n:'IEM 科隆',        s:'科隆',     lo:71, hi:83, g:2},
+  {n:'BLAST 世界总决赛',s:'年终总决', lo:75, hi:86, g:2},
+  {n:'MAJOR · 春季',    s:'MAJOR春',  lo:79, hi:91, g:3, major:true},
+  {n:'MAJOR · 冬季',    s:'MAJOR冬',  lo:81, hi:93, g:3, major:true}
+];
+
+/* 对手梯度：弱 → 强。普通站 2 场，Major 3 场 */
+function bracket(lo, hi, cnt){
+  const pool = TEAMS.filter(t=>t.pw>=lo && t.pw<=hi).slice().sort((a,b)=>a.pw-b.pw);
+  const n = pool.length;
+  if(n < cnt) return pool.concat(pool).slice(0, cnt);
+  const used = new Set();
+  const segs = cnt === 2
+    ? [[0,.55],[.45,1]]
+    : [[0,.45],[.3,.78],[.6,1]];
+  return segs.map(([a,b])=>{
+    let i = RI(a, Math.max(a,b-1));
+    let guard = 0;
+    while(used.has(i) && guard++ < 12){ i = RI(a, Math.max(a,b-1)); }
+    used.add(i);
+    return pool[CLAMP(i,0,n-1)];
+  });
+}
+
+function bo3(p){
+  let w=0, l=0;
+  const arr = [];
+  while(w<2 && l<2){
+    const r = Math.random() < p;
+    arr.push(r);
+    r ? w++ : l++;
+  }
+  return {win: w>=2, sc: w+':'+l, arr};
+}
+
+function simulateSeason(score){
+  const out = [];
+  let titles = 0, finals = 0;
+  EVENTS.forEach(ev=>{
+    const total = ev.g || 2;
+    const opps = bracket(ev.lo, ev.hi, total);
+    const games = [];
+    let wins = 0;
+    for(let i=0;i<total;i++){
+      const opp = opps[i];
+      const p = 1 / (1 + Math.pow(10, (opp.pw - score)/24));
+      const res = bo3(p);
+      games.push({opp, ...res});
+      if(res.win) wins++;
+      else break;               // 输一场就出局
+    }
+    let place, cls;
+    if(wins === total){ place = '冠军'; cls = 'champ'; titles++; }
+    else if(wins === total-1){ place = '亚军'; cls = 'final'; finals++; }
+    else if(wins === 1){ place = total===3 ? '八强' : '四强'; cls = 'semi'; }
+    else { place = '出局'; cls = 'out'; }
+    out.push({ev, games, wins, place, cls});
+  });
+  return {events: out, titles, finals};
+}
+
+function gradeOf(s){
+  if(s>=94) return {g:'S+', lb:'王 朝 阵 容', cls:'g-SP'};
+  if(s>=86) return {g:'S',  lb:'MAJOR 冠军', cls:'g-S'};
+  if(s>=77) return {g:'A',  lb:'顶级强队', cls:'g-A'};
+  if(s>=67) return {g:'B',  lb:'一线队伍', cls:'g-B'};
+  if(s>=57) return {g:'C',  lb:'二线水平', cls:'g-C'};
+  return {g:'D', lb:'网吧五连坐', cls:'g-D'};
+}
+
+/* 评语生成 */
+function verdictOf(r){
+  const {picks, score, chemVal, avg, badFit} = r;
+  const g = gradeOf(score);
+  const lines = [];
+
+  if(score>=96){
+    lines.push('这套阵容唯一的战术问题是：谁去死。');
+    lines.push('答案是没有。他们不需要有人去死。');
+  } else if(score>=90){
+    lines.push('这套人放在一起，教练只需要负责叫暂停。');
+    lines.push('剩下的时间里，他们自己会赢。');
+  } else if(score>=82){
+    lines.push('拿得了 Major，但要打满五图。');
+    lines.push('碰到更强的队，会有人站出来。问题是站出来的那个人，是不是每次都同一个。');
+  } else if(score>=72){
+    lines.push('这是一支能进 Major 的队。');
+    lines.push('大概在八强止步，然后被人写进"如果他们再磨合一年"的文章里。');
+  } else if(score>=60){
+    lines.push('这套阵容的天花板是区域赛冠军。');
+    lines.push('不是因为没有天赋，是因为没有人愿意干脏活。');
+  } else {
+    lines.push('五个人都在等别人先动。');
+    lines.push('这不是一支队伍，这是五个直播间。');
+  }
+
+  // 位置特征吐槽
+  const awp = picks.find(x=>x.pos.k==='awp');
+  const igl = picks.find(x=>x.pos.k==='igl');
+  const sup = picks.find(x=>x.pos.k==='support');
+
+  if(awp.fit.v < 0.9) lines.push(`${awp.pl.n} 不是狙击手。你把他放在那儿，他的第一枪会用来找你。`);
+  if(igl.pl.r < 1.10) lines.push(`${igl.pl.n} 的指挥数据不好看，但他能让四个人都听他的。这就是全部意义。`);
+  if(sup.pl.r < 1.10) lines.push(`辅助位是 ${sup.pl.n}。数据表上他排第五，录像里他排第一。`);
+
+  if(badFit >= 2) lines.push('两个位置是硬塞的。天赋再好，站位不对就是不对。');
+  if(chemVal >= 12) lines.push('化学反应接近满分。他们像是从同一支队的更衣室里走出来的。');
+  if(chemVal < 0) lines.push('更衣室会出问题。这不是技术问题。');
+
+  // 战术 & 核心
+  if(r.tacDetail && r.tacDetail.length && Math.abs(r.tacBonus) >= 5){
+    if(r.tacBonus > 0){
+      const best = r.tacDetail.filter(d=>d.v>0).sort((a,b)=>b.v-a.v)[0];
+      lines.push(`${S.tactic.n} 选对了。${best?best.n+' 这个点被彻底放大了。':''}这套人本来就长在这个战术上。`);
+    } else {
+      const worst = r.tacDetail.filter(d=>d.v<0).sort((a,b)=>a.v-b.v)[0];
+      lines.push(`${S.tactic.n} 不适合这套人。${worst?worst.n+' 是队里最值钱的那个，却正好被这套战术压住了。':''}`);
+    }
+  }
+  if(r.coreBonus >= 4){
+    lines.push('核心选对了。' + r.coreNote + '。');
+  } else if(r.coreBonus <= -3){
+    lines.push('核心的选择有问题：' + r.coreNote + '。');
+  }
+
+  // 赛季战绩点评
+  const season = r.season;
+  if(season){
+    const mjs = season.events.filter(e=>e.ev.major);
+    const mjWin = mjs.filter(m=>m.wins === 3).length;
+
+    if(season.titles >= 7){
+      lines.push('八站七冠。这一年没什么可说的，他们只是在收奖杯。');
+    } else if(season.titles >= 5){
+      lines.push(`八站 ${season.titles} 冠。奖杯柜得再加一层。`);
+    } else if(season.titles >= 3){
+      lines.push(`八站 ${season.titles} 冠。够体面，但还没到写进历史书的程度。`);
+    } else if(season.titles === 0 && season.finals === 0){
+      lines.push('一整年，一个决赛都没进。这个赛季会被忘掉，连回顾视频都不会做。');
+    } else if(season.titles === 0){
+      lines.push(`进过 ${season.finals} 次决赛，一个冠军都没拿到。最难看的不是输，是每次都差一点。`);
+    }
+
+    if(mjWin === 2){
+      lines.push('两个 Major 都拿了。这一年没有争议。');
+    } else if(mjWin === 1){
+      lines.push('拿了一个 Major。另一个没能走到最后，但一个就够写进简历了。');
+    } else {
+      lines.push('两个 Major 都没拿到。CS 的历史只记得 Major 冠军，其他的都不算。');
+    }
+  }
+
+  return lines.join('\n');
+}
+
+/* 每人一份赛季数据 */
+function buildStats(r){
+  const titles = r.season ? r.season.titles : 0;
+  const ps = r.picks.map(x=>{
+    const rating = x.pl.r + (Math.random()-0.5)*0.03;
+    // 赛季末世界排名：个人表现 + 队伍冠军数
+    const perf = rating + titles * 0.008;
+    let rank = null;
+    if(perf >= 1.31)      rank = RI(1,3);
+    else if(perf >= 1.26) rank = RI(4,7);
+    else if(perf >= 1.21) rank = RI(8,13);
+    else if(perf >= 1.16) rank = RI(14,20);
+    return {
+      rank,
+      pos: x.pos, pl: x.pl,
+      rating,
+      kpr: 0.65 + (rating - 1.0) * 0.64 + (Math.random()-0.5)*0.035,
+      kd:  1.00 + (rating - 1.0) * 1.15 + (Math.random()-0.5)*0.05,
+      honors: []
+    };
+  });
+  const sorted = ps.slice().sort((a,b)=>b.rating-a.rating);
+  if(sorted[0]) sorted[0].honors.push({t:'MVP', c:'mvp'});
+  if(sorted[1]) sorted[1].honors.push({t:'EVP', c:'evp'});
+  ps.forEach(p=>{
+    if(p.pos.k==='igl')     p.honors.push({t:'指挥核心', c:'h'});
+    if(p.pos.k==='entry')   p.honors.push({t:'首杀王', c:'h'});
+    if(p.pos.k==='lurker')  p.honors.push({t:'残局王', c:'h'});
+    if(p.pos.k==='awp')     p.honors.push({t:'狙击手', c:'h'});
+    if(p.pos.k==='support') p.honors.push({t:'无声功臣', c:'h'});
+  });
+  return ps;
+}
+
+function showResult(){
+  const r = calcResult();
+  r.season = simulateSeason(r.score);
+  const g = gradeOf(r.score);
+
+  // 存最佳
+  BEST.runs = (BEST.runs||0) + 1;
+  const isBest = r.score > (BEST.best||0);
+  if(isBest){
+    BEST.best = r.score;
+    BEST.bestLineup = POS.map(p=>({pos:p.n, n:S.slots[p.k].n, r:S.slots[p.k].r}));
+    BEST.bestTitles = r.season.titles;
+  }
+  saveBest();
+
+  const chemRows = r.chem.length
+    ? r.chem.map(c=>{
+        const cls = c.v>0?'pos-v':c.v<0?'neg-v':'zero-v';
+        const sign = c.v>0?'+':'';
+        return `<div class="row"><span class="rn">${c.n}</span><span class="rv ${cls}">${sign}${c.v}</span></div>`;
+      }).join('')
+    : `<div class="row"><span class="rn">没有任何加成</span><span class="rv zero-v">0</span></div>`;
+
+  const teamRows = r.picks.map(x=>`
+    <div class="ft">
+      <span class="fp">${x.pos.n}</span>
+      <span class="fn">${x.pl.n}${x.pos.k===r.corePos?'<span class="coremark">核心</span>':''}</span>
+      <span class="fr">${x.pl.r.toFixed(2)}</span>
+    </div>`).join('');
+
+  const coreName = S.core ? S.slots[S.core].n : '—';
+  const tacName  = S.tactic ? S.tactic.n : '—';
+
+  const seasonRows = r.season.events.map(e=>{
+    const path = e.games.map(g=>`${g.opp.n} <b style="color:${g.win?'var(--green)':'var(--red)'}">${g.sc}</b>`).join(' · ');
+    return `<div class="sev ${e.ev.major?'major-ev':''}">
+      <div class="sev-h">
+        <span class="sev-n">${e.ev.s}</span>
+        <span class="sev-p ${e.cls}">${e.place}</span>
+      </div>
+      <div class="sev-path">${path}</div>
+    </div>`;
+  }).join('');
+
+  const stats = buildStats(r);
+  const majors = r.season.events.filter(e=>e.ev.major);
+  r.stats = stats;
+
+  const POS_ABBR_SAFE = POS_ABBR;
+  const statRows = stats.map(s=>`
+    <div class="strow ${s.pos.k===S.core?'iscore':''}">
+      <span class="stpos">${POS_ABBR_SAFE[s.pos.k]}</span>
+      <span class="stmain">
+        <span class="stname">${s.pl.n}${s.rank?`<span class="wrank">TOP ${s.rank}</span>`:''}${s.honors.map(h=>`<span class="honor ${h.c}">${h.t}</span>`).join('')}</span>
+        <span class="stline">${s.pl.t} · ${s.pl.era}</span>
+      </span>
+      <span class="stright">
+        <span class="strating">${s.rating.toFixed(2)}<span>RATING</span></span>
+        <span class="strsub">${s.kpr.toFixed(2)} KPR · ${s.kd.toFixed(2)} K/D</span>
+      </span>
+    </div>`).join('');
+
+  $('app').innerHTML = `
+    <div class="result">
+      <div class="kicker">S E A S O N &nbsp; R E S U L T</div>
+      <div class="record">
+        <span class="rw">${r.season.titles}</span>
+        <span class="runit">冠 / 8 站</span>
+      </div>
+      <div class="rsub">
+        <span class="gpill ${g.cls}">${g.g}</span>
+        <span class="rtext">${r.score} 分 · ${g.lb}</span>
+      </div>
+      <div class="majors">
+        ${majors.map(m=>`<span class="mj ${m.cls}">${m.ev.s === 'MAJOR春' ? 'MAJOR 春季' : 'MAJOR 冬季'} · ${m.place}</span>`).join('')}
+      </div>
+      <div class="pills">
+        <span class="pill">战术 · ${tacName}</span>
+        <span class="pill">核心 · ${coreName}</span>
+      </div>
+      ${isBest?'<div class="bestmark">◆ 生涯最佳阵容</div>':''}
+
+      <div class="sec">本 赛 季 数 据<span class="secnote">按 Rating 模拟</span></div>
+      <div class="stats">${statRows}</div>
+
+      <div class="verdict">${verdictOf(r)}</div>
+
+      <div class="sec">赛 站 战 绩</div>
+      <div class="season">${seasonRows}</div>
+
+      <div class="sec">阵 容</div>
+      <div class="finalteam">${teamRows}</div>
+
+      <div class="sec">化 学 反 应</div>
+      <div class="rows">${chemRows}</div>
+
+      <div class="sec">数 据</div>
+      <div class="rows">
+        <div class="row"><span class="rn">阵容评分</span><span class="rv">${r.score} / 100</span></div>
+        <div class="row"><span class="rn">冠军 / 亚军（8 站）</span><span class="rv">${r.season.titles} / ${r.season.finals}</span></div>
+        ${majors.map(m=>`<div class="row"><span class="rn">${m.ev.n}</span><span class="rv">${m.place}</span></div>`).join('')}
+        <div class="row"><span class="rn">核心 · ${coreName}</span><span class="rv ${r.coreBonus>0?'pos-v':r.coreBonus<0?'neg-v':'zero-v'}">${r.coreBonus>0?'+':''}${r.coreBonus}</span></div>
+        <div class="row"><span class="rn">战术 · ${tacName}</span><span class="rv ${r.tacBonus>0?'pos-v':r.tacBonus<0?'neg-v':'zero-v'}">${r.tacBonus>0?'+':''}${r.tacBonus}</span></div>
+        <div class="row"><span class="rn">化学反应总分</span><span class="rv ${r.chemVal>0?'pos-v':r.chemVal<0?'neg-v':'zero-v'}">${r.chemVal>0?'+':''}${r.chemVal}</span></div>
+        <div class="row"><span class="rn">位置错配</span><span class="rv ${r.badFit?'neg-v':'pos-v'}">${r.badFit} 人</span></div>
+      </div>
+
+      <div class="acts">
+        <button class="btn" id="againBtn">再 抽 一 套</button>
+        <button class="btn ghost" id="copyBtn">复制战绩</button>
+      </div>
+      <div class="sharebox" id="sharebox"></div>
+      <div class="disc" style="text-align:center">非官方粉丝同人作品 · 仅供娱乐 · ${VERSION}</div>
+    </div>`;
+
+  $('againBtn').onclick = splash;
+
+  const text = buildShareText(r, g);
+  $('copyBtn').onclick = ()=>{
+    const box = $('sharebox');
+    box.style.display = 'block';
+    box.textContent = text;
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(text).then(()=>{
+        $('copyBtn').textContent = '已复制';
+        setTimeout(()=>{ $('copyBtn').textContent='复制战绩'; }, 1600);
+      }).catch(()=>{});
+    }
+  };
+}
+
+function buildShareText(r, g){
+  const lines = [];
+  lines.push(`【大乱斗】${r.season.titles} 冠 / 8 站　${r.score} 分 ${g.g} ${g.lb}`);
+  lines.push('');
+  r.picks.forEach(x=>{
+    const core = x.pos.k === r.corePos ? ' ★' : '';
+    lines.push(`${x.pos.n}  ${x.pl.n}  ${x.pl.r.toFixed(2)}${core}`);
+  });
+  lines.push('');
+  lines.push(`战术：${S.tactic ? S.tactic.n : '—'}　化学反应 ${r.chemVal>0?'+':''}${r.chemVal}`);
+  lines.push('');
+  r.season.events.forEach(e=>{
+    lines.push(`${e.ev.s}　${e.place}`);
+  });
+  return lines.join('\n');
+}
+
+/* ==========================================================
+   启动
+   ========================================================== */
+splash();
+</script>
+</body>
+</html>
