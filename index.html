@@ -1047,6 +1047,38 @@ function tierOf(r, t20){
   return 'solid';
 }
 
+/* 同队加成在界面上的称呼：每支队给一句专属说法，没配到的直接用队名 */
+const TEAM_MOTTO = {
+  'Astralis':          'Astralis 王朝',
+  'Natus Vincere':     'Born to Win',
+  'FaZe':              'FaZe Up',
+  'Vitality':          'Vitality 蜂群',
+  'G2':                'G2 银河战舰',
+  'Fnatic':            'Fnatic 王朝',
+  'Liquid':            'Liquid 军团',
+  'MOUZ':              'MOUZ 青年军',
+  'Spirit':            'Spirit 新王',
+  'Heroic':            'Heroic 丹麦帮',
+  'Virtus.pro':        'VP 波兰铁军',
+  'Ninjas in Pyjamas': 'NiP 87 连胜',
+  'SK Gaming':         'SK 巴西王朝',
+  'Gambit':            'Gambit 独联体',
+  'Cloud9':            'C9 北美之光',
+  'Team EnVyUs':       'EnVy 法国帮',
+  'LDLC':              'LDLC 法国帮',
+  'Outsiders':         'Outsiders 独联体',
+  'Team SoloMid':      'TSM 丹麦帮',
+  'The MongolZ':       '蒙古铁骑',
+  'Immortals':         'Immortals 巴西',
+  'ENCE':              'ENCE 芬兰军团',
+  'Avangar':           'Avangar 哈萨克',
+  'GamerLegion':       'GL 欧洲新锐',
+  'BIG':               'BIG 德国战车',
+  'FURIA':             'FURIA 桑巴',
+  'Falcons':           'Falcons 沙特'
+};
+const mottoOf = t => TEAM_MOTTO[t] || t;
+
 /* HLTV 年度 TOP20 排名（2014-2025 全部完整查证） */
 const T20 = {
   '2014': {'GeT_RiGhT':1, 'flusha':2, 'pashaBiceps':3, 'Snax':4, 'JW':5, 'kennyS':6, 'f0rest':7, 'shox':8, 'KRIMZ':9, 'Happy':10, 'GuardiaN':11, 'olofmeister':12, 'byali':13, 'friberg':14, 'apEX':15, 'dupreeh':16, 'NBK-':17, 'swag':18, 'kioShiMa':19, 'device':20},
@@ -1571,7 +1603,7 @@ function calcResult(){
     if(n>=2){
       const add = n===2?5:n===3?9:n===4?13:18;
       chemVal += add;
-      chem.push({n:`同队 · ${t} ×${n}`, v:add,
+      chem.push({n:`${mottoOf(t)} ×${n}`, v:add,
         d: n>=4 ? '同一套体系养出来的人。他们不用沟通就知道下一步。'
           : n===3 ? '三个人在同一个战术框架里待过，这是骨架。'
           : '至少不用重新学怎么说话。'});
@@ -1928,10 +1960,9 @@ function showResult(){
   const chemRows = r.chem.length
     ? r.chem.map(c=>{
         const cls = c.v>0?'pos-v':c.v<0?'neg-v':'zero-v';
-        const sign = c.v>0?'+':'';
-        return `<div class="row"><span class="rn">${c.n}</span><span class="rv ${cls}">${sign}${c.v}</span></div>`;
+        return `<div class="row"><span class="rn">${c.n}</span><span class="rv ${cls}">●</span></div>`;
       }).join('')
-    : `<div class="row"><span class="rn">没有任何加成</span><span class="rv zero-v">0</span></div>`;
+    : `<div class="row"><span class="rn">没有任何加成</span><span class="rv zero-v">●</span></div>`;
 
   const teamRows = r.picks.map(x=>`
     <div class="ft">
