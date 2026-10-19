@@ -1109,7 +1109,8 @@ function newRun(){
     rerolls:3,
     core:null,
     tactic:null,
-    phase:'draw'
+    phase:'draw',
+    notice:''
   };
 }
 
@@ -1119,7 +1120,7 @@ function newRun(){
 function splash(){
   newRun();
   const b = BEST.best || 0;
-  const grade = gradeOf(b);
+  const grade = gradeOf(b, BEST.bestMajors || 0);
   $('app').innerHTML = `
     <div class="splash">
       <div class="kicker">DRAFT SIMULATOR</div>
@@ -1190,8 +1191,10 @@ function squadUsable(team, era){
   return SQUADS[team][era].some(pl=>!S.used.has(pl.n) && openPos(pl).length>0);
 }
 
-/* 抽签。keepTeam / keepEra 传值表示保持该维度 */
+/* 抽签。keepTeam / keepEra 传值表示保持该维度
+   返回 true = 抽到了「确实能出人」的签；false = 这个维度下已抽不出能填的人，原签保留 */
 function drawSquad(keepTeam, keepEra, avoid){
+  const prev = S.draw || null;
   function collect(ignoreUsed){
     const list = [];
     Object.keys(SQUADS).forEach(t=>{
@@ -1222,7 +1225,19 @@ function drawSquad(keepTeam, keepEra, avoid){
     const f = list.filter(x=>!(x.team===avoid.team && x.era===avoid.era));
     if(f.length) list = f;
   }
-  S.draw = list.length ? PICK(list) : null;
+  // 抽到的签必须真的有人能填当前空位：抽到全灰的就丢掉重抽，抽完为止
+  const pool = list.slice();
+  while(pool.length){
+    const cand = PICK(pool);
+    pool.splice(pool.indexOf(cand), 1);
+    if(squadUsable(cand.team, cand.era)){
+      S.draw = cand;
+      S.notice = '';
+      return true;
+    }
+  }
+  S.draw = prev;                          // 一个都出不了人：保留原签，不把界面抽空
+  return false;
 }
 
 function renderSign(){
@@ -1268,6 +1283,7 @@ function renderSign(){
         ? `剩余 ${S.rerolls} 次${eraTeamCount<=1 ? '（这个年代只有这一支队，重抽会整签重来）' : '（球队 / 年代 二选一）'}`
         : '重抽机会已用完'}</div>
       ` : ''}
+      ${S.notice ? `<div class="droptip on" style="margin-top:10px">${S.notice}</div>` : ''}
       <div class="droptip" id="droptip">${drawn ? '先点下面一个人，再点上方位置' : ''}</div>
       <div class="cards" id="cards"></div>
     </div>`;
@@ -1278,18 +1294,31 @@ function renderSign(){
   if(!drawn){
     $('drawBtn').onclick = ()=>{
       S.picked = null;
-      drawSquad(null, null);
+      if(!drawSquad(null, null)) S.notice = '抽不出能填剩下位置的人了';
       renderSign();
     };
   } else {
     $('rbTeam').onclick = ()=>{
-      S.rerolls--; S.picked = null;
-      if(eraTeamCount > 1) drawSquad(null, S.draw.era);
-      else drawSquad(null, null, {team:S.draw.team, era:S.draw.era});
+      S.picked = null;
+      let ok;
+      if(eraTeamCount > 1){
+        ok = drawSquad(null, S.draw.era);
+        if(!ok) S.notice = '这个年代里没有别的队能出了，试试「更换年代」';
+      } else {
+        ok = drawSquad(null, null, {team:S.draw.team, era:S.draw.era});
+        if(!ok) S.notice = '整签也抽不出能填的人了';
+      }
+      if(ok) S.rerolls--;
       renderSign();
     };
     const rbEra = $('rbEra');
-    if(rbEra) rbEra.onclick = ()=>{ S.rerolls--; S.picked = null; drawSquad(S.draw.team, null); renderSign(); };
+    if(rbEra) rbEra.onclick = ()=>{
+      S.picked = null;
+      const ok = drawSquad(S.draw.team, null);
+      if(ok) S.rerolls--;
+      else S.notice = '这支队其他年代也出不了这个位置，试试「更换战队」';
+      renderSign();
+    };
     renderPlayerList(squad);
   }
 }
@@ -1396,6 +1425,7 @@ function pickInto(posKey){
   S.slots[posKey] = { n:pl.n, r:pl.r, c:pl.c, p:pl.p, t:pl.team, era:pl.era };
   S.used.add(pl.n);
   S.picked = null;
+  S.notice = '';
   S.round++;
   S.draw = null;
   if(S.round >= 5){ renderCoreSelect(); }
@@ -1612,6 +1642,8 @@ function calcResult(){
    赛季模拟：8 站赛事（卡托、科隆、双 Major），看这套人一年能拿几个冠军
    （借鉴「82胜」的思路——用赛季战绩代替裸分数）
    ========================================================== */
+/* 对手池：pw = 队伍强度（和阵容 score 同量纲），赛事按 lo~hi 区间从这里筛队。
+   低分区间的队伍要够密，否则弱站永远只有那几支队可选。 */
 const TEAMS = [
   {n:'Astralis',     y:'2018', pw:96},
   {n:'Natus Vincere',y:'2021', pw:95},
@@ -1620,15 +1652,28 @@ const TEAMS = [
   {n:'Vitality',     y:'2023', pw:88},
   {n:'Spirit',       y:'2024', pw:88},
   {n:'G2',           y:'2024', pw:86},
+  {n:'SK Gaming',    y:'2016', pw:86},
+  {n:'Luminosity',   y:'2016', pw:85},
   {n:'MOUZ',         y:'2024', pw:84},
   {n:'Heroic',       y:'2021', pw:84},
+  {n:'Gambit',       y:'2017', pw:84},
   {n:'Liquid',       y:'2018', pw:82},
   {n:'Virtus.pro',   y:'2020', pw:80},
+  {n:'Team EnVyUs',  y:'2015', pw:80},
   {n:'NIP',          y:'2014', pw:79},
   {n:'Cloud9',       y:'2018', pw:78},
   {n:'mousesports',  y:'2019', pw:77},
+  {n:'OG',           y:'2019', pw:77},
+  {n:'TSM',          y:'2015', pw:76},
+  {n:'North',        y:'2017', pw:76},
   {n:'ENCE',         y:'2019', pw:75},
-  {n:'Complexity',   y:'2020', pw:73}
+  {n:'FURIA',        y:'2020', pw:75},
+  {n:'Immortals',    y:'2016', pw:74},
+  {n:'Complexity',   y:'2020', pw:73},
+  {n:'Dignitas',     y:'2014', pw:73},
+  {n:'Renegades',    y:'2019', pw:73},
+  {n:'Titan',        y:'2014', pw:72},
+  {n:'iBUYPOWER',    y:'2014', pw:71}
 ];
 
 /* 一年 8 站：卡托、科隆各一站，Major 两届，其余为大型赛事 */
@@ -1640,25 +1685,36 @@ const EVENTS = [
   {n:'IEM 科隆',        s:'科隆',     lo:71, hi:83, g:2},
   {n:'BLAST 世界总决赛',s:'年终总决', lo:75, hi:86, g:2},
   {n:'MAJOR · 春季',    s:'MAJOR春',  lo:79, hi:91, g:3, major:true},
-  {n:'MAJOR · 冬季',    s:'MAJOR冬',  lo:81, hi:93, g:3, major:true}
+  {n:'MAJOR · 冬季',    s:'MAJOR冬',  lo:81, hi:96, g:3, major:true}
 ];
 
-/* 对手梯度：弱 → 强。普通站 2 场，Major 3 场 */
+/* 对手梯度：弱 → 强。普通站 2 场，Major 3 场
+   每场从对应比例段里抽队，同一站不派同一支队两次 */
 function bracket(lo, hi, cnt){
   const pool = TEAMS.filter(t=>t.pw>=lo && t.pw<=hi).slice().sort((a,b)=>a.pw-b.pw);
   const n = pool.length;
-  if(n < cnt) return pool.concat(pool).slice(0, cnt);
+  if(!n) return [];
   const used = new Set();
+  /* 在 [lo2,hi2] 里找一个没被用过的下标，找不到返回 -1 */
+  const pickFrom = (lo2, hi2)=>{
+    const free = [];
+    for(let i=lo2; i<=hi2; i++) if(!used.has(i)) free.push(i);
+    return free.length ? free[Math.floor(Math.random()*free.length)] : -1;
+  };
   const segs = cnt === 2
     ? [[0,.55],[.45,1]]
     : [[0,.45],[.3,.78],[.6,1]];
-  return segs.map(([a,b])=>{
-    let i = RI(a, Math.max(a,b-1));
-    let guard = 0;
-    while(used.has(i) && guard++ < 12){ i = RI(a, Math.max(a,b-1)); }
-    used.add(i);
-    return pool[CLAMP(i,0,n-1)];
+  const out = [];
+  segs.slice(0, cnt).forEach(([a,b])=>{
+    let lo2 = Math.floor(a * n);
+    let hi2 = Math.min(n-1, Math.max(lo2, Math.ceil(b * n) - 1));
+    let idx = pickFrom(lo2, hi2);
+    if(idx < 0) idx = pickFrom(0, n-1);   // 这一段抽干了，放宽到全池
+    if(idx < 0) idx = RI(0, n-1);         // 池子比场次还少，只能重复
+    used.add(idx);
+    out.push(pool[idx]);
   });
+  return out;
 }
 
 function bo3(p){
@@ -1698,7 +1754,9 @@ function simulateSeason(score){
   return {events: out, titles, finals};
 }
 
-function gradeOf(s){
+/* 评级：分数定档；但一个赛季把两个 Major 都拿下，直接算王朝 —— 这个成绩不需要用评分解释 */
+function gradeOf(s, majors){
+  if((majors || 0) >= 2) return {g:'S+', lb:'王 朝 阵 容', cls:'g-SP'};
   if(s>=94) return {g:'S+', lb:'王 朝 阵 容', cls:'g-SP'};
   if(s>=86) return {g:'S',  lb:'MAJOR 冠军', cls:'g-S'};
   if(s>=77) return {g:'A',  lb:'顶级强队', cls:'g-A'};
@@ -1710,7 +1768,6 @@ function gradeOf(s){
 /* 评语生成 */
 function verdictOf(r){
   const {picks, score, chemVal, avg, badFit} = r;
-  const g = gradeOf(score);
   const lines = [];
 
   if(score>=96){
@@ -1765,27 +1822,35 @@ function verdictOf(r){
   // 赛季战绩点评
   const season = r.season;
   if(season){
+    const n = season.events.length;
     const mjs = season.events.filter(e=>e.ev.major);
-    const mjWin = mjs.filter(m=>m.wins === 3).length;
+    const mjWin = mjs.filter(m=>m.wins === m.ev.g).length;
+    const cleanSweep = season.titles >= n;
 
-    if(season.titles >= 7){
-      lines.push('八站七冠。这一年没什么可说的，他们只是在收奖杯。');
-    } else if(season.titles >= 5){
-      lines.push(`八站 ${season.titles} 冠。奖杯柜得再加一层。`);
-    } else if(season.titles >= 3){
-      lines.push(`八站 ${season.titles} 冠。够体面，但还没到写进历史书的程度。`);
-    } else if(season.titles === 0 && season.finals === 0){
-      lines.push('一整年，一个决赛都没进。这个赛季会被忘掉，连回顾视频都不会做。');
-    } else if(season.titles === 0){
-      lines.push(`进过 ${season.finals} 次决赛，一个冠军都没拿到。最难看的不是输，是每次都差一点。`);
-    }
-
-    if(mjWin === 2){
-      lines.push('两个 Major 都拿了。这一年没有争议。');
-    } else if(mjWin === 1){
-      lines.push('拿了一个 Major。另一个没能走到最后，但一个就够写进简历了。');
+    if(cleanSweep && mjWin === 2){
+      lines.push(`${n} 站全胜，两个 Major 都拿了。这不是一个赛季，这是一个王朝。`);
     } else {
-      lines.push('两个 Major 都没拿到。CS 的历史只记得 Major 冠军，其他的都不算。');
+      if(cleanSweep){
+        lines.push(`${n} 站全胜。这一年没有对手，只有陪练。`);
+      } else if(season.titles >= 7){
+        lines.push(`${n} 站 ${season.titles} 冠。这一年没什么可说的，他们只是在收奖杯。`);
+      } else if(season.titles >= 5){
+        lines.push(`${n} 站 ${season.titles} 冠。奖杯柜得再加一层。`);
+      } else if(season.titles >= 3){
+        lines.push(`${n} 站 ${season.titles} 冠。够体面，但还没到写进历史书的程度。`);
+      } else if(season.titles === 0 && season.finals === 0){
+        lines.push('一整年，一个决赛都没进。这个赛季会被忘掉，连回顾视频都不会做。');
+      } else if(season.titles === 0){
+        lines.push(`进过 ${season.finals} 次决赛，一个冠军都没拿到。最难看的不是输，是每次都差一点。`);
+      }
+
+      if(mjWin === 2){
+        lines.push('两个 Major 都拿了。这已经不是强队，是一个王朝。');
+      } else if(mjWin === 1){
+        lines.push('拿了一个 Major。另一个没能走到最后，但一个就够写进简历了。');
+      } else {
+        lines.push('两个 Major 都没拿到。CS 的历史只记得 Major 冠军，其他的都不算。');
+      }
     }
   }
 
@@ -1795,24 +1860,40 @@ function verdictOf(r){
 /* 每人一份赛季数据 */
 function buildStats(r){
   const titles = r.season ? r.season.titles : 0;
-  const ps = r.picks.map(x=>{
+  const base = r.picks.map(x=>{
     const rating = x.pl.r + (Math.random()-0.5)*0.03;
     // 赛季末世界排名：个人表现 + 队伍冠军数
-    const perf = rating + titles * 0.008;
-    let rank = null;
-    if(perf >= 1.31)      rank = RI(1,3);
-    else if(perf >= 1.26) rank = RI(4,7);
-    else if(perf >= 1.21) rank = RI(8,13);
-    else if(perf >= 1.16) rank = RI(14,20);
-    return {
-      rank,
-      pos: x.pos, pl: x.pl,
-      rating,
-      kpr: 0.65 + (rating - 1.0) * 0.64 + (Math.random()-0.5)*0.035,
-      kd:  1.00 + (rating - 1.0) * 1.15 + (Math.random()-0.5)*0.05,
-      honors: []
-    };
+    return { x, rating, perf: rating + titles * 0.008 };
   });
+  /* TOP20 名次是唯一的：按表现从高到低依次占位，一个名次不会发给两个人。
+     档位内随机取空位；本档占满就顺延到榜尾的空位，取不到就干脆不进榜。 */
+  const taken = new Set();
+  const rankOf = new Map();
+  base.slice().sort((a,b)=>b.perf-a.perf).forEach(row=>{
+    const band = row.perf >= 1.31 ? [1,3]
+               : row.perf >= 1.26 ? [4,7]
+               : row.perf >= 1.21 ? [8,13]
+               : row.perf >= 1.16 ? [14,20]
+               : null;
+    if(!band){ rankOf.set(row, null); return; }
+    const free = [];
+    for(let i=band[0]; i<=band[1]; i++) if(!taken.has(i)) free.push(i);
+    if(!free.length){
+      for(let i=band[1]+1; i<=20; i++) if(!taken.has(i)) free.push(i);
+    }
+    if(!free.length){ rankOf.set(row, null); return; }
+    const k = PICK(free);
+    taken.add(k);
+    rankOf.set(row, k);
+  });
+  const ps = base.map(row=>({
+    rank: rankOf.get(row),
+    pos: row.x.pos, pl: row.x.pl,
+    rating: row.rating,
+    kpr: 0.65 + (row.rating - 1.0) * 0.64 + (Math.random()-0.5)*0.035,
+    kd:  1.00 + (row.rating - 1.0) * 1.15 + (Math.random()-0.5)*0.05,
+    honors: []
+  }));
   const sorted = ps.slice().sort((a,b)=>b.rating-a.rating);
   if(sorted[0]) sorted[0].honors.push({t:'MVP', c:'mvp'});
   if(sorted[1]) sorted[1].honors.push({t:'EVP', c:'evp'});
@@ -1829,7 +1910,8 @@ function buildStats(r){
 function showResult(){
   const r = calcResult();
   r.season = simulateSeason(r.score);
-  const g = gradeOf(r.score);
+  const mjWin = r.season.events.filter(e=>e.ev.major && e.wins===e.ev.g).length;
+  const g = gradeOf(r.score, mjWin);
 
   // 存最佳
   BEST.runs = (BEST.runs||0) + 1;
@@ -1838,6 +1920,7 @@ function showResult(){
     BEST.best = r.score;
     BEST.bestLineup = POS.map(p=>({pos:p.n, n:S.slots[p.k].n, r:S.slots[p.k].r}));
     BEST.bestTitles = r.season.titles;
+    BEST.bestMajors = mjWin;
   }
   saveBest();
 
@@ -1893,7 +1976,7 @@ function showResult(){
       <div class="kicker">S E A S O N &nbsp; R E S U L T</div>
       <div class="record">
         <span class="rw">${r.season.titles}</span>
-        <span class="runit">冠 / 8 站</span>
+        <span class="runit">冠 / ${r.season.events.length} 站</span>
       </div>
       <div class="rsub">
         <span class="gpill ${g.cls}">${g.g}</span>
@@ -1925,7 +2008,7 @@ function showResult(){
       <div class="sec">数 据</div>
       <div class="rows">
         <div class="row"><span class="rn">阵容评分</span><span class="rv">${r.score} / 100</span></div>
-        <div class="row"><span class="rn">冠军 / 亚军（8 站）</span><span class="rv">${r.season.titles} / ${r.season.finals}</span></div>
+        <div class="row"><span class="rn">冠军 / 亚军（${r.season.events.length} 站）</span><span class="rv">${r.season.titles} / ${r.season.finals}</span></div>
         ${majors.map(m=>`<div class="row"><span class="rn">${m.ev.n}</span><span class="rv">${m.place}</span></div>`).join('')}
         <div class="row"><span class="rn">核心 · ${coreName}</span><span class="rv ${r.coreBonus>0?'pos-v':r.coreBonus<0?'neg-v':'zero-v'}">${r.coreBonus>0?'+':''}${r.coreBonus}</span></div>
         <div class="row"><span class="rn">战术 · ${tacName}</span><span class="rv ${r.tacBonus>0?'pos-v':r.tacBonus<0?'neg-v':'zero-v'}">${r.tacBonus>0?'+':''}${r.tacBonus}</span></div>
@@ -1959,7 +2042,7 @@ function showResult(){
 
 function buildShareText(r, g){
   const lines = [];
-  lines.push(`【大乱斗】${r.season.titles} 冠 / 8 站　${r.score} 分 ${g.g} ${g.lb}`);
+  lines.push(`【大乱斗】${r.season.titles} 冠 / ${r.season.events.length} 站　${r.score} 分 ${g.g} ${g.lb}`);
   lines.push('');
   r.picks.forEach(x=>{
     const core = x.pos.k === r.corePos ? ' ★' : '';
