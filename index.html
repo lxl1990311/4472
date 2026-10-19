@@ -1083,17 +1083,17 @@ let S = null;
 let BEST = loadBest();
 
 /* 版本号：数据或规则变更时手动更新 */
-const VERSION = 'v2026.10.19';
+const VERSION = 'v2026.10.19b';
 
 function loadBest(){
   try{
-    const raw = localStorage.getItem('csdraft_best_v1');
+    const raw = localStorage.getItem('csdraft_best_v2');
     if(raw) return JSON.parse(raw);
   }catch(e){}
   return {best:0, runs:0, bestLineup:null};
 }
 function saveBest(){
-  try{ localStorage.setItem('csdraft_best_v1', JSON.stringify(BEST)); }catch(e){}
+  try{ localStorage.setItem('csdraft_best_v2', JSON.stringify(BEST)); }catch(e){}
 }
 
 /* ==========================================================
@@ -1631,8 +1631,8 @@ function calcResult(){
   const badFit = picks.filter(x=>x.fit.v<0.95).length;
 
   // 总分：avg 区间窄（1.26~1.45），化学反应才是主要分数轴
-  let score = Math.round(62 + (avg - 1.30) * 130 + chemVal * 2.0 + tacBonus + coreBonus);
-  score = CLAMP(score, 1, 100);
+  let score = Math.round(62 + (avg - 1.30) * 130 + chemVal * 1.5 + tacBonus + coreBonus);
+  score = CLAMP(score, 1, 130);
 
   return {picks, avg, teamAvgR, chem, chemVal, score, badFit,
           tacBonus, tacDetail, coreBonus, coreNote, corePos};
@@ -1800,7 +1800,8 @@ function verdictOf(r){
   if(sup.pl.r < 1.10) lines.push(`辅助位是 ${sup.pl.n}。数据表上他排第五，录像里他排第一。`);
 
   if(badFit >= 2) lines.push('两个位置是硬塞的。天赋再好，站位不对就是不对。');
-  if(chemVal >= 12) lines.push('化学反应接近满分。他们像是从同一支队的更衣室里走出来的。');
+  if(chemVal >= 24) lines.push('化学反应接近满分。他们像是从同一支队的更衣室里走出来的。');
+  else if(chemVal >= 12) lines.push('化学反应相当好。几个人对版本的理解是同一套。');
   if(chemVal < 0) lines.push('更衣室会出问题。这不是技术问题。');
 
   // 战术 & 核心
@@ -2007,7 +2008,7 @@ function showResult(){
 
       <div class="sec">数 据</div>
       <div class="rows">
-        <div class="row"><span class="rn">阵容评分</span><span class="rv">${r.score} / 100</span></div>
+        <div class="row"><span class="rn">阵容评分</span><span class="rv">${r.score} 分</span></div>
         <div class="row"><span class="rn">冠军 / 亚军（${r.season.events.length} 站）</span><span class="rv">${r.season.titles} / ${r.season.finals}</span></div>
         ${majors.map(m=>`<div class="row"><span class="rn">${m.ev.n}</span><span class="rv">${m.place}</span></div>`).join('')}
         <div class="row"><span class="rn">核心 · ${coreName}</span><span class="rv ${r.coreBonus>0?'pos-v':r.coreBonus<0?'neg-v':'zero-v'}">${r.coreBonus>0?'+':''}${r.coreBonus}</span></div>
