@@ -552,7 +552,8 @@ const TACTIC_DEX = {
   dawp:  ['ZywOo','s1mple','m0NESY','device','GuardiaN','kennyS'],
   rush:  ['donk','NiKo','dupreeh','frozen','EliGE','fer'],
   slow:  ['ropz','flusha','GeT_RiGhT','coldzera','NAF','stavn'],
-  exec:  ['Xyp9x','Magisk','NBK-','KRIMZ','friberg','TACO'],
+  /* broky 是「道具大王」梗（本体是狙击手），这条是有意保留的例外，不要按本职校验删掉 */
+  exec:  ['Xyp9x','Magisk','NBK-','KRIMZ','TACO','broky'],
   coach: ['Zeus','karrigan','Aleksib','gla1ve','HooXi','chopper']
 };
 
@@ -594,7 +595,7 @@ const ACHIEVEMENTS = [
    done: st => st.dexCount('dawp') >= 6 || st.runs >= 35},
   {id:'coach',  n:'更衣室',       d:'集齐 6 名指挥图鉴',                        tac:'coach',
    done: st => st.dexCount('coach') >= 6 || st.runs >= 45},
-  {id:'exec',   n:'道具库',       d:'集齐 6 名辅助图鉴',                        tac:'exec',
+  {id:'exec',   n:'道具大王',       d:'集齐 6 名辅助图鉴',                        tac:'exec',
    done: st => st.dexCount('exec') >= 6 || st.runs >= 45},
   {id:'rush',   n:'开路先锋',     d:'集齐 6 名突破手图鉴',                      tac:'rush',
    done: st => st.dexCount('rush') >= 6 || st.runs >= 40},
