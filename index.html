@@ -711,6 +711,14 @@ const SQUADS = {
       {n:'KRIMZ',     p:['support','entry'],  r:1.11, c:'瑞典'},
       {n:'Golden',    p:['igl'],              r:0.94, c:'瑞典'},
       {n:'Lekr0',     p:['entry','support'],  r:1.06, c:'瑞典'}
+    ],
+    /* DreamHack Masters Malmö 2019 冠军（Brollan 崛起，瑞典最后一冠） */
+    '2019': [
+      {n:'JW',        p:['awp'],              r:1.06, c:'瑞典'},
+      {n:'Golden',    p:['igl'],              r:0.93, c:'瑞典'},
+      {n:'KRIMZ',     p:['support','lurker'], r:1.10, c:'瑞典'},
+      {n:'Brollan',   p:['entry'],            r:1.12, c:'瑞典'},
+      {n:'flusha',    p:['lurker','support'], r:1.08, c:'瑞典'}
     ]
   },
   Liquid: {
@@ -1004,6 +1012,14 @@ const SQUADS = {
       {n:'nex',       p:['support','entry'],  r:1.13, c:'德国'},
       {n:'tiziaN',    p:['support'],          r:1.02, c:'德国'},
       {n:'gob b',     p:['igl'],              r:0.96, c:'德国'}
+    ],
+    /* DreamHack Masters Spring 2020 冠军（德国队唯一 S 级冠军） */
+    '2020': [
+      {n:'syrsoN',    p:['awp'],              r:1.16, c:'德国'},
+      {n:'tabseN',    p:['igl','entry'],      r:1.10, c:'德国'},
+      {n:'XANTARES',  p:['entry'],            r:1.14, c:'土耳其'},
+      {n:'tiziaN',    p:['support'],          r:1.01, c:'德国'},
+      {n:'k1to',      p:['lurker','support'], r:1.00, c:'德国'}
     ]
   },
   /* 2026 科隆 Major 亚军 */
@@ -1024,6 +1040,88 @@ const SQUADS = {
       {n:'kyousuke',  p:['entry','lurker'],   r:1.14, c:'俄罗斯'},
       {n:'TeSeS',     p:['support'],          r:1.03, c:'丹麦'},
       {n:'karrigan',  p:['igl'],              r:0.81, c:'丹麦'}
+    ]
+  },
+
+  /* ---- 以下为其他 S 级赛事 / 大赛的经典阵容 ---- */
+  /* ESL One 纽约 2019 冠军（北美最后一座 S 级） */
+  'Evil Geniuses': {
+    '2019': [
+      {n:'CeRq',        p:['awp'],              r:1.13, c:'保加利亚'},
+      {n:'Brehze',      p:['entry','lurker'],   r:1.18, c:'美国'},
+      {n:'Ethan',       p:['lurker','support'], r:1.13, c:'美国'},
+      {n:'stanislaw',   p:['igl'],              r:1.01, c:'加拿大'},
+      {n:'tarik',       p:['entry','support'],  r:1.04, c:'美国'}
+    ]
+  },
+  /* BLAST Premier Spring 2020 欧洲区冠军 */
+  'Complexity': {
+    '2020': [
+      {n:'poizon',      p:['awp'],              r:1.10, c:'保加利亚'},
+      {n:'blameF',      p:['igl','lurker'],     r:1.23, c:'丹麦'},
+      {n:'k0nfig',      p:['entry'],            r:1.13, c:'丹麦'},
+      {n:'RUSH',        p:['support'],          r:0.97, c:'美国'},
+      {n:'oBo',         p:['entry','lurker'],   r:1.11, c:'美国'}
+    ]
+  },
+  /* cs_summit 6 冠军（Aleksib 体系雏形） */
+  'OG': {
+    '2020': [
+      {n:'mantuu',      p:['awp'],              r:1.13, c:'丹麦'},
+      {n:'Aleksib',     p:['igl'],              r:1.01, c:'芬兰'},
+      {n:'valde',       p:['lurker'],           r:1.11, c:'丹麦'},
+      {n:'ISSAA',       p:['entry'],            r:1.05, c:'约旦'},
+      {n:'NBK-',        p:['support'],          r:1.01, c:'法国'}
+    ]
+  },
+  /* 巴黎 Major 2023 亚军（黑马，jL 成名战） */
+  'Apeks': {
+    '2023': [
+      {n:'nawwk',       p:['awp'],              r:1.12, c:'瑞典'},
+      {n:'kyxsan',      p:['igl'],              r:1.02, c:'北马其顿'},
+      {n:'jL',          p:['entry','lurker'],   r:1.10, c:'立陶宛'},
+      {n:'STYKO',       p:['support'],          r:0.97, c:'斯洛伐克'},
+      {n:'jkaem',       p:['entry','lurker'],   r:1.12, c:'挪威'}
+    ]
+  },
+  /* IEM 达拉斯 2024 亚军 / EWC 四强（土耳其队首次世界大赛决赛） */
+  'Eternal Fire': {
+    '2024': [
+      {n:'woxic',       p:['awp'],              r:1.07, c:'土耳其'},
+      {n:'MAJ3R',       p:['igl'],              r:0.95, c:'土耳其'},
+      {n:'XANTARES',    p:['entry'],            r:1.18, c:'土耳其'},
+      {n:'Wicadia',     p:['lurker','entry'],   r:1.08, c:'土耳其'},
+      {n:'jottAAA',     p:['support'],          r:1.16, c:'土耳其'}
+    ]
+  },
+  /* 安特卫普 Major 2022 八强（全丹麦黑马，HooXi 出道） */
+  'Copenhagen Flames': {
+    '2022': [
+      {n:'nicoodoz',    p:['awp'],              r:1.10, c:'丹麦'},
+      {n:'HooXi',       p:['igl'],              r:0.88, c:'丹麦'},
+      {n:'jabbi',       p:['entry','lurker'],   r:1.07, c:'丹麦'},
+      {n:'roeJ',        p:['support','lurker'], r:1.16, c:'丹麦'},
+      {n:'Zyphon',      p:['entry','support'],  r:1.07, c:'丹麦'}
+    ]
+  },
+  /* 奥斯汀 Major 2025 八强（巴西新世代） */
+  'paiN': {
+    '2025': [
+      {n:'nqz',         p:['awp'],              r:1.09, c:'巴西'},
+      {n:'biguzera',    p:['igl'],              r:0.98, c:'巴西'},
+      {n:'snow',        p:['entry','lurker'],   r:0.98, c:'巴西'},
+      {n:'dav1deuS',    p:['entry'],            r:1.02, c:'巴西'},
+      {n:'dgt',         p:['support'],          r:1.03, c:'巴西'}
+    ]
+  },
+  /* 奥斯汀 Major 2025 四强（法国队复兴） */
+  '3DMAX': {
+    '2025': [
+      {n:'Lucky',       p:['awp'],              r:1.13, c:'法国'},
+      {n:'Maka',        p:['igl'],              r:1.06, c:'法国'},
+      {n:'Graviti',     p:['entry'],            r:0.98, c:'法国'},
+      {n:'bodyy',       p:['support','lurker'], r:1.04, c:'法国'},
+      {n:'Ex3rcice',    p:['lurker','support'], r:1.03, c:'法国'}
     ]
   }
 };
@@ -1075,7 +1173,15 @@ const TEAM_MOTTO = {
   'GamerLegion':       'GL 欧洲新锐',
   'BIG':               'BIG 德国战车',
   'FURIA':             'FURIA 桑巴',
-  'Falcons':           'Falcons 沙特'
+  'Falcons':           'Falcons 沙特',
+  'Evil Geniuses':     'EG 北美之光',
+  'Complexity':        'COL 北美',
+  'OG':                'OG 黑马',
+  'Apeks':             'Apeks 黑马',
+  'Eternal Fire':      'EF 土耳其',
+  'Copenhagen Flames': 'CPH 火焰',
+  'paiN':              'paiN 巴西',
+  '3DMAX':             '3DMAX 法国',
 };
 const mottoOf = t => TEAM_MOTTO[t] || t;
 
