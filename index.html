@@ -362,6 +362,24 @@
   .achrow.on .achdot{background:var(--gold)}
   .achtag{font-size:9px;color:var(--gold);border:1px solid rgba(255,200,87,.45);padding:0 4px;border-radius:2px;flex:none}
 
+  /* 羁绊图鉴 */
+  .bonds{margin-top:12px;text-align:left}
+  .bonds summary{
+    cursor:pointer;list-style:none;font-size:9px;letter-spacing:.18em;
+    color:var(--dim2);padding:4px 0;user-select:none;
+  }
+  .bonds summary::-webkit-details-marker{display:none}
+  .bonds summary::before{content:'▸ ';font-size:9px}
+  .bonds[open] summary::before{content:'▾ '}
+  .bondlist{margin-top:6px;display:flex;flex-direction:column;gap:5px}
+  .bondrow{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:10.5px;color:var(--dim);line-height:1.5}
+  .bondrow.on{color:var(--text)}
+  .bondname{flex:none;min-width:88px}
+  .bondtag{font-size:9.5px;padding:0 5px;border-radius:2px;border:1px solid var(--line2);color:var(--dim2)}
+  .bondtag.on{color:var(--gold);border-color:rgba(255,200,87,.45);background:rgba(255,200,87,.08)}
+  .bondcnt{margin-left:auto;font-size:9.5px;color:var(--dim2);flex:none}
+  .bondrow.on .bondcnt{color:var(--gold)}
+
   .rgrade{
     display:flex;align-items:flex-end;gap:14px;
     margin:8px 0 4px;
@@ -536,6 +554,31 @@ const TACTIC_DEX = {
   exec:  ['electronic','Xyp9x','Magisk','KRIMZ','NBK-','gla1ve'],
   coach: ['Zeus','karrigan','Aleksib','FalleN','blameF','HooXi']
 };
+
+/* 羁绊：集齐一组经典组合后，这组人在之后的对局里 rating +0.01（每人只算一次，不叠加） */
+const BONDS = [
+  {id:'astralis', n:'Astralis 王朝',   m:['device','dupreeh','Xyp9x','gla1ve'],      d:'四连 Major 的骨架'},
+  {id:'nip87',    n:'87-0',           m:['GeT_RiGhT','f0rest','friberg','Xizt'],    d:'史上最长连胜'},
+  {id:'fnatic15', n:'瑞典统治',        m:['olofmeister','flusha','KRIMZ','JW'],      d:'2015 年的四冠王'},
+  {id:'navi2',    n:'NaVi 双核',       m:['s1mple','electronic'],                    d:'一狙一步枪，撑起一个时代'},
+  {id:'brazil',   n:'巴西双煞',        m:['FalleN','coldzera'],                      d:'两届 Major 的师徒'},
+  {id:'french',   n:'法国三剑客',      m:['kennyS','apEX','NBK-'],                   d:'法国黄金一代'},
+  {id:'spirit2',  n:'绿龙双核',        m:['donk','sh1ro'],                           d:'新王与他的狙击手'},
+  {id:'vitality2',n:'蜜蜂双核',        m:['ZywOo','apEX'],                           d:'天选之子与他的队长'},
+  {id:'g2',       n:'G2 双枪',         m:['m0NESY','NiKo'],                          d:'狙击与步枪的顶级拼图'},
+  {id:'karrigan', n:'指挥的传承',      m:['karrigan','ropz','rain'],                 d:'老兵带队的 FaZe'},
+  {id:'heroic',   n:'Heroic 丹麦帮',   m:['cadiaN','stavn','TeSeS','sjuush'],        d:'丹麦体系'},
+  {id:'c9',       n:'北美奇迹',        m:['Skadoodle','Stewie2K','autimatic'],       d:'波士顿 Major'},
+  {id:'liquid',   n:'北美双子',        m:['EliGE','Twistzz'],                        d:'Liquid 的枪法担当'},
+  {id:'astralis2',n:'丹麦双子',        m:['device','dupreeh'],                       d:'从 TSM 到王朝'},
+  {id:'gambit',   n:'独联体奇迹',      m:['Zeus','AdreN','HObbit','Dosia'],          d:'克拉科夫 Major'}
+];
+const hasBond = id => (BEST.bonds || []).indexOf(id) >= 0;
+/* 这个选手是否属于某个已集齐的羁绊（加成每人只算一次） */
+const bondMember = n => (BEST.bonds || []).some(id => {
+  const b = BONDS.find(x => x.id === id);
+  return b && b.m.indexOf(n) >= 0;
+});
 
 /* 成就：达成后永久解锁对应战术（存在 localStorage，跨局累计）
    图鉴类要集齐 6 名指定选手；其余是玩法类，保留累计保底避免卡死。 */
@@ -1294,6 +1337,7 @@ function loadBest(){
     if(raw){
       const o = JSON.parse(raw);
       if(!Array.isArray(o.unlocked)) o.unlocked = [];
+      if(!Array.isArray(o.bonds)) o.bonds = [];
       if(!o.seen || typeof o.seen !== 'object') o.seen = {};
       ['awp','entry','igl','support','lurker'].forEach(k=>{
         if(!Array.isArray(o.seen[k])) o.seen[k] = [];
@@ -1301,7 +1345,7 @@ function loadBest(){
       return o;
     }
   }catch(e){}
-  return {best:0, runs:0, bestLineup:null, unlocked:[], seen:{awp:[],entry:[],igl:[],support:[],lurker:[]}};
+  return {best:0, runs:0, bestLineup:null, unlocked:[], bonds:[], seen:{awp:[],entry:[],igl:[],support:[],lurker:[]}};
 }
 function saveBest(){
   try{ localStorage.setItem('csdraft_best_v2', JSON.stringify(BEST)); }catch(e){}
@@ -1352,6 +1396,13 @@ function splash(){
     return `<div class="achrow ${on?'on':''}"><span class="achdot"></span><span>${a.n}</span><span class="achtag">${on ? tac.n : '未解锁'}</span><span>${desc}</span></div>`;
   }).join('');
   const achCount = ACHIEVEMENTS.filter(a=>hasAch(a.id)).length;
+  const bondRows = BONDS.map(b=>{
+    const on = hasBond(b.id);
+    const tags = b.m.map(n=>`<span class="bondtag ${gotP.has(n)?'on':''}">${n}</span>`).join('');
+    const have = b.m.filter(n=>gotP.has(n)).length;
+    return `<div class="bondrow ${on?'on':''}"><span class="bondname">${b.n}</span>${tags}<span class="bondcnt">${have}/${b.m.length}</span></div>`;
+  }).join('');
+  const bondCount = BONDS.filter(b=>hasBond(b.id)).length;
   $('app').innerHTML = `
     <div class="splash">
       <div class="kicker">DRAFT SIMULATOR</div>
@@ -1373,6 +1424,10 @@ function splash(){
         <div class="achrow" style="color:var(--dim2);font-size:9px;letter-spacing:.18em;margin-bottom:2px">成 就 ${achCount}/${ACHIEVEMENTS.length} · 解锁战术</div>
         ${achRows}
       </div>
+      <details class="bonds">
+        <summary>羁 绊 图 鉴 ${bondCount}/${BONDS.length}</summary>
+        <div class="bondlist">${bondRows}</div>
+      </details>
       <div class="foot">
         <div class="note">选手评分为该年代近似值，仅供娱乐，不代表任何官方立场。</div>
         <div class="disc">非官方粉丝同人作品 · 仅供娱乐 · ${VERSION}</div>
@@ -2114,7 +2169,8 @@ function buildStats(r){
   const tmod = (S.tactic && !S.tactic.locked) ? (S.tactic.mod || {}) : {};
   const base = r.picks.map(x=>{
     const m = tmod[x.pos.k] || 1;
-    const rating = x.pl.r * (1 + (m - 1) * 0.08) + (Math.random()-0.5)*0.03;
+    const bondAdd = bondMember(x.pl.n) ? 0.01 : 0;
+    const rating = (x.pl.r + bondAdd) * (1 + (m - 1) * 0.08) + (Math.random()-0.5)*0.03;
     // 赛季末世界排名：个人表现(含战术加成) + 队伍冠军数
     return { x, rating, perf: rating + titles * 0.008 };
   });
@@ -2222,10 +2278,22 @@ function showResult(){
     }
   });
   if(newAch.length) saveBest();
+  /* 羁绊判定：这一组人全部抽到过就集齐 */
+  const newBonds = [];
+  BONDS.forEach(b=>{
+    if(!hasBond(b.id) && b.m.every(n => gotSet.has(n))){
+      BEST.bonds.push(b.id);
+      newBonds.push(b);
+    }
+  });
+  if(newBonds.length) saveBest();
   const achBar = newAch.map(a=>{
     const tac = TACTICS.find(t=>t.id === a.tac);
     return `<div class="achbar"><span class="achbar-k">成就解锁</span><b>${a.n}</b><span class="achbar-d">${a.d}</span><span class="achbar-u">战术「${tac.n}」已可用</span></div>`;
   }).join('');
+  const bondBar = newBonds.map(b=>
+    `<div class="achbar bondbar"><span class="achbar-k">羁绊集齐</span><b>${b.n}</b><span class="achbar-d">${b.d}</span><span class="achbar-u">成员评分 +0.01</span></div>`
+  ).join('');
 
   const chemRows = r.chem.length
     ? r.chem.map(c=>{
@@ -2276,7 +2344,7 @@ function showResult(){
   $('app').innerHTML = `
     <div class="result">
       <div class="kicker">S E A S O N &nbsp; R E S U L T</div>
-      ${achBar}
+      ${achBar}${bondBar}
       <div class="record">
         <span class="rw">${r.season.titles}</span>
         <span class="runit">冠 / ${r.season.events.length} 站</span>
