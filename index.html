@@ -546,13 +546,14 @@ const TACTICS = [
 /* 成就：达成后永久解锁对应战术（存在 localStorage，跨局累计）
    位置类成就对应「收集」——想解锁双狙，就得真的抽到过顶级狙击手；
    苦力位（指挥/辅助）不吃评分，只看收集数量，因为这两个位置本来就没有高分选手。 */
-/* 战术图鉴：集齐这 6 名指定选手，永久解锁对应战术 */
+/* 战术图鉴：集齐这 6 名指定选手，永久解锁对应战术
+   人选只取该位置「本职」（p 数组第一位就是该位置），不用客串选手 */
 const TACTIC_DEX = {
   dawp:  ['ZywOo','s1mple','m0NESY','device','GuardiaN','kennyS'],
-  rush:  ['donk','coldzera','NiKo','EliGE','fer','Brollan'],
-  slow:  ['ropz','GeT_RiGhT','f0rest','olofmeister','Twistzz','NAF'],
-  exec:  ['electronic','Xyp9x','Magisk','KRIMZ','NBK-','gla1ve'],
-  coach: ['Zeus','karrigan','Aleksib','FalleN','blameF','HooXi']
+  rush:  ['donk','NiKo','dupreeh','frozen','EliGE','fer'],
+  slow:  ['ropz','flusha','GeT_RiGhT','coldzera','NAF','stavn'],
+  exec:  ['Xyp9x','Magisk','NBK-','KRIMZ','friberg','TACO'],
+  coach: ['Zeus','karrigan','Aleksib','gla1ve','HooXi','chopper']
 };
 
 /* 羁绊：集齐一组经典组合后，这组人在之后的对局里 rating +0.01（每人只算一次，不叠加） */
@@ -1389,9 +1390,11 @@ function splash(){
     const dex = TACTIC_DEX[a.tac];
     let desc = a.d;
     if(dex){
-      const miss = dex.filter(n=>!gotP.has(n));
-      desc = `${dex.length - miss.length}/${dex.length}`;
-      if(!on && miss.length) desc += ` · 还差 ${miss.slice(0,3).join('、')}${miss.length>3 ? ` 等 ${miss.length} 人` : ''}`;
+      /* 六个名字全列出来，不用「等 N 人」让人猜 */
+      const have = dex.filter(n=>gotP.has(n)).length;
+      desc = `${have}/${dex.length} · ` + dex.map(n =>
+        gotP.has(n) ? `<b style="color:var(--gold)">${n}</b>` : n
+      ).join('、');
     }
     return `<div class="achrow ${on?'on':''}"><span class="achdot"></span><span>${a.n}</span><span class="achtag">${on ? tac.n : '未解锁'}</span><span>${desc}</span></div>`;
   }).join('');
@@ -1767,17 +1770,16 @@ function renderTacticSelect(){
     const locked = tacticLocked(t);
     const ach = ACHIEVEMENTS.find(a=>a.tac === t.id);
     const dex = TACTIC_DEX[t.id];
-    let sub = t.d;
+    let sub = t.d, tip = '';
     if(locked){
       if(dex){
         const have = dex.filter(n=>got.has(n));
         const miss = dex.filter(n=>!got.has(n));
-        sub = `图鉴 ${have.length}/${dex.length}` + (miss.length
-          ? ` · 还差 ${miss.slice(0,3).join('、')}${miss.length>3 ? ` 等 ${miss.length} 人` : ''}`
-          : '');
+        sub = `图鉴 ${have.length}/${dex.length}`;
+        tip = miss.length ? `还差：${miss.join('、')}` : '已集齐';
       } else if(ach) sub = `解锁条件：${ach.d}`;
     }
-    return `<div class="taccard ${locked?'locked':''} ${sel?'sel':''}" data-id="${t.id}">
+    return `<div class="taccard ${locked?'locked':''} ${sel?'sel':''}" data-id="${t.id}" title="${tip}">
       ${locked && ach ? `<span class="lock">${dex ? `图鉴 ${dex.filter(n=>got.has(n)).length}/${dex.length}` : ach.n}</span>` : ''}
       <div class="tn">${t.n}</div>
       <div class="td">${sub}</div>
