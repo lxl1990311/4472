@@ -512,28 +512,45 @@ const POS_ABBR = {awp:'AWP', entry:'ENT', igl:'IGL', support:'SUP', lurker:'LUR'
    ========================================================== */
 const TACTICS = [
   {id:'default', n:'默认打法', d:'均衡，没有明显短板，也没有明显优势', mod:{}},
-  {id:'rush',    n:'RUSH 强袭', d:'提速压点，让突破手开路',          mod:{entry:1.30, lurker:0.75}},
-  {id:'exec',    n:'爆弹执行', d:'道具开路，五个人一起进点',          mod:{support:1.25, igl:1.15, lurker:0.80}},
-  {id:'dawp',    n:'双狙体系', d:'两个狙击点，长枪局压制力拉满',      mod:{awp:1.35, entry:0.80}},
-  {id:'slow',    n:'控图慢磨', d:'先拿信息，最后四十秒才进点',        mod:{lurker:1.30, igl:1.20, entry:0.75}},
-  {id:'split',   n:'4-1 分推', d:'四个人打一面，一个人打另一面',      mod:{lurker:1.25, support:1.15, entry:0.85}},
-  {id:'retake',  n:'回防体系', d:'丢了包点也要打回来，靠的是站位',    mod:{support:1.30, awp:1.15, entry:0.85}},
-  {id:'eco',     n:'经济运营', d:'穷局也能赢，靠的是纪律和耐心',      mod:{igl:1.30, support:1.20, awp:0.85}},
-  {id:'stack',   n:'抱团推进', d:'五个人一起走，绝不分散',            mod:{entry:1.20, support:1.20, lurker:0.70}},
+  {id:'rush',    n:'RUSH 强袭', d:'提速压点，让突破手开路',          mod:{entry:1.30, lurker:0.75}, locked:true},
+  {id:'exec',    n:'爆弹执行', d:'道具开路，五个人一起进点',          mod:{support:1.25, igl:1.15, lurker:0.80}, locked:true},
+  {id:'dawp',    n:'双狙体系', d:'两个狙击点，长枪局压制力拉满',      mod:{awp:1.35, entry:0.80}, locked:true},
+  {id:'slow',    n:'控图慢磨', d:'先拿信息，最后四十秒才进点',        mod:{lurker:1.30, igl:1.20, entry:0.75}, locked:true},
+  {id:'split',   n:'4-1 分推', d:'四个人打一面，一个人打另一面',      mod:{lurker:1.25, support:1.15, entry:0.85}, locked:true},
+  {id:'retake',  n:'回防体系', d:'丢了包点也要打回来，靠的是站位',    mod:{support:1.30, awp:1.15, entry:0.85}, locked:true},
+  {id:'eco',     n:'经济运营', d:'穷局也能赢，靠的是纪律和耐心',      mod:{igl:1.30, support:1.20, awp:0.85}, locked:true},
+  {id:'stack',   n:'抱团推进', d:'五个人一起走，绝不分散',            mod:{entry:1.20, support:1.20, lurker:0.70}, locked:true},
   {id:'coach',   n:'教练体系', d:'指挥和辅助被放大，体系大于个人', mod:{igl:1.28, support:1.18, entry:0.88}, locked:true},
   {id:'data',    n:'数据分析', d:'针对性布置，自由人和辅助空间最大', mod:{lurker:1.22, support:1.20, entry:0.90}, locked:true},
   {id:'mental',  n:'心理战',   d:'气势压制，突破和狙击抢先手',       mod:{entry:1.24, awp:1.18, support:0.90}, locked:true}
 ];
 
 /* 成就：达成后永久解锁对应战术（存在 localStorage，跨局累计）
-   每条成就都有「实力条件」和「累计保底」两条路，避免手气差的玩家永远解锁不了 */
+   每条都有「实力条件」和「累计保底」两条路，避免手气差或打法特殊的玩家永远卡住。
+   排序大致按解锁先后：前几条几局内就能拿到，后三条要打一阵。 */
 const ACHIEVEMENTS = [
-  {id:'coach',  n:'助教上岗',     d:'组建 5 套阵容',                       tac:'coach',
+  {id:'rush',   n:'新手上路',     d:'完成 1 套阵容',                       tac:'rush',
+   done: st => st.runs >= 1},
+  {id:'split',  n:'五湖四海',     d:'单局 5 个位置来自 5 支不同队伍',        tac:'split',
+   done: st => st.teams >= 5 || st.runs >= 3},
+  {id:'slow',   n:'慢性子',       d:'单赛季至少拿 1 个亚军',                 tac:'slow',
+   done: st => st.finals >= 1 || st.runs >= 5},
+  {id:'coach',  n:'助教上岗',     d:'组建 5 套阵容',                        tac:'coach',
    done: st => st.runs >= 5},
+  {id:'eco',    n:'穷则思变',     d:'单局评分低于 75',                      tac:'eco',
+   done: st => st.score < 75 || st.runs >= 6},
+  {id:'stack',  n:'抱团取暖',     d:'单局同一支队抽到 3 人',                 tac:'stack',
+   done: st => st.sameTeam >= 3 || st.runs >= 8},
+  {id:'exec',   n:'道具流',       d:'单局化学反应达到 12',                   tac:'exec',
+   done: st => st.chemVal >= 12 || st.runs >= 10},
+  {id:'dawp',   n:'狙神在阵',     d:'单局狙击手评分达到 1.30',               tac:'dawp',
+   done: st => st.awpR >= 1.30 || st.runs >= 12},
   {id:'data',   n:'Excel 指挥官', d:'单赛季 5 冠，或累计 15 套阵容',          tac:'data',
    done: st => st.titles >= 5 || st.runs >= 15},
-  {id:'mental', n:'读心术',       d:'单赛季双 Major，或累计 60 套阵容',       tac:'mental',
-   done: st => st.majors >= 2 || st.runs >= 60}
+  {id:'retake', n:'绝地反击',     d:'评分低于 78 却拿到 4 冠以上',            tac:'retake',
+   done: st => (st.score < 78 && st.titles >= 4) || st.runs >= 25},
+  {id:'mental', n:'读心术',       d:'单赛季双 Major，或累计 40 套阵容',       tac:'mental',
+   done: st => st.majors >= 2 || st.runs >= 40}
 ];
 const hasAch = id => (BEST.unlocked || []).indexOf(id) >= 0;
 const tacticLocked = t => !!t.locked && !hasAch(t.id);
@@ -2126,7 +2143,20 @@ function showResult(){
   saveBest();
 
   /* 成就判定：达成后永久解锁对应战术 */
-  const achState = { runs: BEST.runs || 0, titles: r.season.titles, majors: mjWin, score: r.score };
+  const tc = {};
+  r.picks.forEach(x => { tc[x.pl.t] = (tc[x.pl.t] || 0) + 1; });
+  const awpPick = r.picks.find(x => x.pos.k === 'awp');
+  const achState = {
+    runs: BEST.runs || 0,
+    titles: r.season.titles,
+    finals: r.season.finals || 0,
+    majors: mjWin,
+    score: r.score,
+    chemVal: r.chemVal,
+    sameTeam: Math.max(0, ...Object.values(tc)),
+    teams: Object.keys(tc).length,
+    awpR: awpPick ? awpPick.pl.r : 0
+  };
   const newAch = [];
   ACHIEVEMENTS.forEach(a=>{
     if(!hasAch(a.id) && a.done(achState)){
