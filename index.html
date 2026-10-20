@@ -526,30 +526,30 @@ const TACTICS = [
 ];
 
 /* 成就：达成后永久解锁对应战术（存在 localStorage，跨局累计）
-   每条都有「实力条件」和「累计保底」两条路，避免手气差或打法特殊的玩家永远卡住。
-   排序大致按解锁先后：前几条几局内就能拿到，后三条要打一阵。 */
+   位置类成就对应「收集」——想解锁双狙，就得真的抽到过顶级狙击手；
+   苦力位（指挥/辅助）不吃评分，只看收集数量，因为这两个位置本来就没有高分选手。 */
 const ACHIEVEMENTS = [
-  {id:'rush',   n:'新手上路',     d:'完成 1 套阵容',                       tac:'rush',
-   done: st => st.runs >= 1},
-  {id:'split',  n:'五湖四海',     d:'单局 5 个位置来自 5 支不同队伍',        tac:'split',
+  {id:'split',  n:'五湖四海',     d:'单局 5 个位置来自 5 支不同队伍',           tac:'split',
    done: st => st.teams >= 5 || st.runs >= 3},
-  {id:'slow',   n:'慢性子',       d:'单赛季至少拿 1 个亚军',                 tac:'slow',
-   done: st => st.finals >= 1 || st.runs >= 5},
-  {id:'coach',  n:'助教上岗',     d:'组建 5 套阵容',                        tac:'coach',
-   done: st => st.runs >= 5},
-  {id:'eco',    n:'穷则思变',     d:'单局评分低于 75',                      tac:'eco',
+  {id:'eco',    n:'穷则思变',     d:'单局评分低于 75',                         tac:'eco',
    done: st => st.score < 75 || st.runs >= 6},
-  {id:'stack',  n:'抱团取暖',     d:'单局同一支队抽到 3 人',                 tac:'stack',
+  {id:'stack',  n:'抱团取暖',     d:'单局同一支队抽到 3 人',                    tac:'stack',
    done: st => st.sameTeam >= 3 || st.runs >= 8},
-  {id:'exec',   n:'道具流',       d:'单局化学反应达到 12',                   tac:'exec',
-   done: st => st.chemVal >= 12 || st.runs >= 10},
-  {id:'dawp',   n:'狙神在阵',     d:'单局狙击手评分达到 1.30',               tac:'dawp',
-   done: st => st.awpR >= 1.30 || st.runs >= 12},
-  {id:'data',   n:'Excel 指挥官', d:'单赛季 5 冠，或累计 15 套阵容',          tac:'data',
+  {id:'coach',  n:'更衣室',       d:'收集 4 名不同的指挥',                      tac:'coach',
+   done: st => st.seenCount('igl') >= 4 || st.runs >= 10},
+  {id:'exec',   n:'道具库',       d:'收集 4 名不同的辅助',                      tac:'exec',
+   done: st => st.seenCount('support') >= 4 || st.runs >= 10},
+  {id:'dawp',   n:'狙击收藏家',   d:'收集 3 名狙击手，其中 1 名评分 ≥1.30',      tac:'dawp',
+   done: st => (st.seenCount('awp') >= 3 && st.seenTop('awp', 1.30)) || st.runs >= 14},
+  {id:'data',   n:'Excel 指挥官', d:'单赛季 5 冠，或累计 15 套阵容',            tac:'data',
    done: st => st.titles >= 5 || st.runs >= 15},
-  {id:'retake', n:'绝地反击',     d:'评分低于 78 却拿到 4 冠以上',            tac:'retake',
+  {id:'rush',   n:'开路先锋',     d:'收集 3 名突破手，其中 1 名评分 ≥1.25',      tac:'rush',
+   done: st => (st.seenCount('entry') >= 3 && st.seenTop('entry', 1.25)) || st.runs >= 18},
+  {id:'slow',   n:'耐心猎手',     d:'收集 3 名自由人，其中 1 名评分 ≥1.28',      tac:'slow',
+   done: st => (st.seenCount('lurker') >= 3 && st.seenTop('lurker', 1.28)) || st.runs >= 20},
+  {id:'retake', n:'绝地反击',     d:'评分低于 78 却拿到 4 冠以上',              tac:'retake',
    done: st => (st.score < 78 && st.titles >= 4) || st.runs >= 25},
-  {id:'mental', n:'读心术',       d:'单赛季双 Major，或累计 40 套阵容',       tac:'mental',
+  {id:'mental', n:'读心术',       d:'单赛季双 Major，或累计 40 套阵容',         tac:'mental',
    done: st => st.majors >= 2 || st.runs >= 40}
 ];
 const hasAch = id => (BEST.unlocked || []).indexOf(id) >= 0;
@@ -1283,10 +1283,14 @@ function loadBest(){
     if(raw){
       const o = JSON.parse(raw);
       if(!Array.isArray(o.unlocked)) o.unlocked = [];
+      if(!o.seen || typeof o.seen !== 'object') o.seen = {};
+      ['awp','entry','igl','support','lurker'].forEach(k=>{
+        if(!Array.isArray(o.seen[k])) o.seen[k] = [];
+      });
       return o;
     }
   }catch(e){}
-  return {best:0, runs:0, bestLineup:null, unlocked:[]};
+  return {best:0, runs:0, bestLineup:null, unlocked:[], seen:{awp:[],entry:[],igl:[],support:[],lurker:[]}};
 }
 function saveBest(){
   try{ localStorage.setItem('csdraft_best_v2', JSON.stringify(BEST)); }catch(e){}
@@ -2143,9 +2147,18 @@ function showResult(){
   saveBest();
 
   /* 成就判定：达成后永久解锁对应战术 */
+  /* 先记录本局选到的选手（按位置去重收集，跨局累计） */
+  r.picks.forEach(x=>{
+    const arr = BEST.seen[x.pos.k];
+    if(Array.isArray(arr) && !arr.some(v => v.n === x.pl.n)){
+      arr.push({ n: x.pl.n, r: x.pl.r });
+    }
+  });
   const tc = {};
   r.picks.forEach(x => { tc[x.pl.t] = (tc[x.pl.t] || 0) + 1; });
   const awpPick = r.picks.find(x => x.pos.k === 'awp');
+  const seenCount = k => (BEST.seen[k] || []).length;
+  const seenTop = (k, th) => (BEST.seen[k] || []).some(v => v.r >= th);
   const achState = {
     runs: BEST.runs || 0,
     titles: r.season.titles,
@@ -2155,7 +2168,9 @@ function showResult(){
     chemVal: r.chemVal,
     sameTeam: Math.max(0, ...Object.values(tc)),
     teams: Object.keys(tc).length,
-    awpR: awpPick ? awpPick.pl.r : 0
+    awpR: awpPick ? awpPick.pl.r : 0,
+    seenCount: seenCount,
+    seenTop: seenTop
   };
   const newAch = [];
   ACHIEVEMENTS.forEach(a=>{
