@@ -2036,12 +2036,18 @@ function buildStats(r){
   const sorted = ps.slice().sort((a,b)=>b.rating-a.rating);
   if(sorted[0]) sorted[0].honors.push({t:'MVP', c:'mvp'});
   if(sorted[1]) sorted[1].honors.push({t:'EVP', c:'evp'});
+  /* 称号：按该选手在队内的 rating 排名分三档。同一个位置，队内大腿和队内垫底说法不一样 */
+  const HONOR_TIERS = {
+    awp:     [['一枪改命','神狙','AWP 之神'],  ['狙击手','定点狙'],      ['空枪','手感冰凉']],
+    entry:   [['破点尖刀','首杀王'],           ['开路先锋','撕口子的人'], ['白给位','第一个倒的']],
+    igl:     [['战术大师','暂停艺术家'],       ['指挥核心','场上大脑'],   ['只会喊话','体系球员']],
+    support: [['隐形核心','道具机器'],         ['无声功臣','干脏活的'],   ['背锅侠','数据表外的人']],
+    lurker:  [['残局王','侧翼幽灵'],           ['独狼','地图另一头'],     ['人间蒸发','来旅游的']]
+  };
   ps.forEach(p=>{
-    if(p.pos.k==='igl')     p.honors.push({t:'指挥核心', c:'h'});
-    if(p.pos.k==='entry')   p.honors.push({t:'首杀王', c:'h'});
-    if(p.pos.k==='lurker')  p.honors.push({t:'残局王', c:'h'});
-    if(p.pos.k==='awp')     p.honors.push({t:'狙击手', c:'h'});
-    if(p.pos.k==='support') p.honors.push({t:'无声功臣', c:'h'});
+    const rank = sorted.indexOf(p);                       // 0 = 队内 rating 最高
+    const tier = rank <= 1 ? 0 : rank <= 3 ? 1 : 2;
+    p.honors.push({t: PICK(HONOR_TIERS[p.pos.k][tier]), c:'h'});
   });
   return ps;
 }
