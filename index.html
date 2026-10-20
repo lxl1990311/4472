@@ -2004,7 +2004,7 @@ function buildStats(r){
   const tmod = (S.tactic && !S.tactic.locked) ? (S.tactic.mod || {}) : {};
   const base = r.picks.map(x=>{
     const m = tmod[x.pos.k] || 1;
-    const rating = x.pl.r * (1 + (m - 1) * 0.15) + (Math.random()-0.5)*0.03;
+    const rating = x.pl.r * (1 + (m - 1) * 0.08) + (Math.random()-0.5)*0.03;
     // 赛季末世界排名：个人表现(含战术加成) + 队伍冠军数
     return { x, rating, perf: rating + titles * 0.008 };
   });
