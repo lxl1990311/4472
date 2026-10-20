@@ -1999,9 +1999,13 @@ function verdictOf(r){
 /* 每人一份赛季数据 */
 function buildStats(r){
   const titles = r.season ? r.season.titles : 0;
+  /* 战术倍率映射到个人数据：被加强的位置 rating 上浮，被牺牲的位置下沉。
+     系数 0.15 意味着 ±35% 的战术倍率只带来 ±5% 的个人数据变化 —— 看得出来，但不会失真。 */
+  const tmod = (S.tactic && !S.tactic.locked) ? (S.tactic.mod || {}) : {};
   const base = r.picks.map(x=>{
-    const rating = x.pl.r + (Math.random()-0.5)*0.03;
-    // 赛季末世界排名：个人表现 + 队伍冠军数
+    const m = tmod[x.pos.k] || 1;
+    const rating = x.pl.r * (1 + (m - 1) * 0.15) + (Math.random()-0.5)*0.03;
+    // 赛季末世界排名：个人表现(含战术加成) + 队伍冠军数
     return { x, rating, perf: rating + titles * 0.008 };
   });
   /* TOP20 名次是唯一的：按表现从高到低依次占位，一个名次不会发给两个人。
