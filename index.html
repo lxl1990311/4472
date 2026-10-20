@@ -338,6 +338,30 @@
   .honor.mvp{color:var(--gold);border-color:rgba(255,200,87,.45);background:rgba(255,200,87,.1)}
   .honor.evp{color:var(--blue);border-color:rgba(79,157,255,.4);background:rgba(79,157,255,.08)}
 
+  /* 成就解锁提示 */
+  .achbar{
+    display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+    margin:10px 0 2px;padding:9px 12px;
+    border:1px solid rgba(255,200,87,.45);border-radius:6px;
+    background:rgba(255,200,87,.07);
+    font-size:11.5px;line-height:1.45;text-align:left;
+  }
+  .achbar-k{
+    font-size:9px;letter-spacing:.16em;color:var(--gold);
+    border:1px solid rgba(255,200,87,.5);padding:1px 5px;border-radius:2px;white-space:nowrap;
+  }
+  .achbar b{font-weight:700;color:var(--gold)}
+  .achbar-d{color:var(--dim)}
+  .achbar-u{color:var(--gold);opacity:.9}
+
+  /* 标题页成就进度 */
+  .achlist{margin:10px 0 2px;display:flex;flex-direction:column;gap:6px;text-align:left}
+  .achrow{display:flex;align-items:baseline;gap:8px;font-size:11px;color:var(--dim);line-height:1.4}
+  .achrow.on{color:var(--text)}
+  .achdot{width:6px;height:6px;border-radius:50%;background:var(--line2);flex:none;margin-top:4px}
+  .achrow.on .achdot{background:var(--gold)}
+  .achtag{font-size:9px;color:var(--gold);border:1px solid rgba(255,200,87,.45);padding:0 4px;border-radius:2px;flex:none}
+
   .rgrade{
     display:flex;align-items:flex-end;gap:14px;
     margin:8px 0 4px;
@@ -496,10 +520,23 @@ const TACTICS = [
   {id:'retake',  n:'回防体系', d:'丢了包点也要打回来，靠的是站位',    mod:{support:1.30, awp:1.15, entry:0.85}},
   {id:'eco',     n:'经济运营', d:'穷局也能赢，靠的是纪律和耐心',      mod:{igl:1.30, support:1.20, awp:0.85}},
   {id:'stack',   n:'抱团推进', d:'五个人一起走，绝不分散',            mod:{entry:1.20, support:1.20, lurker:0.70}},
-  {id:'coach',   n:'教练体系', d:'还没解锁', locked:true},
-  {id:'data',    n:'数据分析', d:'还没解锁', locked:true},
-  {id:'mental',  n:'心理战',   d:'还没解锁', locked:true}
+  {id:'coach',   n:'教练体系', d:'指挥和辅助被放大，体系大于个人', mod:{igl:1.28, support:1.18, entry:0.88}, locked:true},
+  {id:'data',    n:'数据分析', d:'针对性布置，自由人和辅助空间最大', mod:{lurker:1.22, support:1.20, entry:0.90}, locked:true},
+  {id:'mental',  n:'心理战',   d:'气势压制，突破和狙击抢先手',       mod:{entry:1.24, awp:1.18, support:0.90}, locked:true}
 ];
+
+/* 成就：达成后永久解锁对应战术（存在 localStorage，跨局累计）
+   每条成就都有「实力条件」和「累计保底」两条路，避免手气差的玩家永远解锁不了 */
+const ACHIEVEMENTS = [
+  {id:'coach',  n:'助教上岗',     d:'组建 5 套阵容',                       tac:'coach',
+   done: st => st.runs >= 5},
+  {id:'data',   n:'Excel 指挥官', d:'单赛季 5 冠，或累计 15 套阵容',          tac:'data',
+   done: st => st.titles >= 5 || st.runs >= 15},
+  {id:'mental', n:'读心术',       d:'单赛季双 Major，或累计 60 套阵容',       tac:'mental',
+   done: st => st.majors >= 2 || st.runs >= 60}
+];
+const hasAch = id => (BEST.unlocked || []).indexOf(id) >= 0;
+const tacticLocked = t => !!t.locked && !hasAch(t.id);
 
 /* ==========================================================
    选手池
@@ -1226,9 +1263,13 @@ const VERSION = 'v2026.10.19b';
 function loadBest(){
   try{
     const raw = localStorage.getItem('csdraft_best_v2');
-    if(raw) return JSON.parse(raw);
+    if(raw){
+      const o = JSON.parse(raw);
+      if(!Array.isArray(o.unlocked)) o.unlocked = [];
+      return o;
+    }
   }catch(e){}
-  return {best:0, runs:0, bestLineup:null};
+  return {best:0, runs:0, bestLineup:null, unlocked:[]};
 }
 function saveBest(){
   try{ localStorage.setItem('csdraft_best_v2', JSON.stringify(BEST)); }catch(e){}
@@ -1259,6 +1300,12 @@ function splash(){
   newRun();
   const b = BEST.best || 0;
   const grade = gradeOf(b, BEST.bestMajors || 0);
+  const achRows = ACHIEVEMENTS.map(a=>{
+    const on = hasAch(a.id);
+    const tac = TACTICS.find(t=>t.id === a.tac);
+    return `<div class="achrow ${on?'on':''}"><span class="achdot"></span><span>${a.n}</span><span class="achtag">${on ? tac.n : '未解锁'}</span><span>${a.d}</span></div>`;
+  }).join('');
+  const achCount = ACHIEVEMENTS.filter(a=>hasAch(a.id)).length;
   $('app').innerHTML = `
     <div class="splash">
       <div class="kicker">DRAFT SIMULATOR</div>
@@ -1275,6 +1322,10 @@ function splash(){
       <button class="btn" id="startBtn">开 始 组 队</button>
       <div class="best">
         生涯最佳 <b>${b||'—'} 分</b>${b?` · ${grade.lb}`:''} · 已组建 <b>${BEST.runs||0}</b> 套阵容
+      </div>
+      <div class="achlist">
+        <div class="achrow" style="color:var(--dim2);font-size:9px;letter-spacing:.18em;margin-bottom:2px">成 就 ${achCount}/${ACHIEVEMENTS.length} · 解锁战术</div>
+        ${achRows}
       </div>
       <div class="foot">
         <div class="note">选手评分为该年代近似值，仅供娱乐，不代表任何官方立场。</div>
@@ -1611,10 +1662,12 @@ function renderCoreSelect(){
 function renderTacticSelect(){
   const cards = TACTICS.map(t=>{
     const sel = S.tactic && S.tactic.id === t.id;
-    return `<div class="taccard ${t.locked?'locked':''} ${sel?'sel':''}" data-id="${t.id}">
-      ${t.locked?'<span class="lock">未解锁</span>':''}
+    const locked = tacticLocked(t);
+    const ach = ACHIEVEMENTS.find(a=>a.tac === t.id);
+    return `<div class="taccard ${locked?'locked':''} ${sel?'sel':''}" data-id="${t.id}">
+      ${locked && ach ? `<span class="lock">${ach.n}</span>` : ''}
       <div class="tn">${t.n}</div>
-      <div class="td">${t.d}</div>
+      <div class="td">${locked && ach ? `达成成就「${ach.n}」解锁 · ${ach.d}` : t.d}</div>
     </div>`;
   }).join('');
 
@@ -1639,8 +1692,7 @@ function renderTacticSelect(){
       S.tactic = TACTICS.find(t=>t.id === el.dataset.id);
       renderTacticSelect();
     };
-  });
-  $('tacBack').onclick = renderCoreSelect;
+  });  $('tacBack').onclick = renderCoreSelect;
   $('tacGo').onclick = ()=>{ if(S.tactic) showResult(); };
 }
 
@@ -2073,6 +2125,21 @@ function showResult(){
   }
   saveBest();
 
+  /* 成就判定：达成后永久解锁对应战术 */
+  const achState = { runs: BEST.runs || 0, titles: r.season.titles, majors: mjWin, score: r.score };
+  const newAch = [];
+  ACHIEVEMENTS.forEach(a=>{
+    if(!hasAch(a.id) && a.done(achState)){
+      BEST.unlocked.push(a.id);
+      newAch.push(a);
+    }
+  });
+  if(newAch.length) saveBest();
+  const achBar = newAch.map(a=>{
+    const tac = TACTICS.find(t=>t.id === a.tac);
+    return `<div class="achbar"><span class="achbar-k">成就解锁</span><b>${a.n}</b><span class="achbar-d">${a.d}</span><span class="achbar-u">战术「${tac.n}」已可用</span></div>`;
+  }).join('');
+
   const chemRows = r.chem.length
     ? r.chem.map(c=>{
         const cls = c.v>0?'pos-v':c.v<0?'neg-v':'zero-v';
@@ -2122,6 +2189,7 @@ function showResult(){
   $('app').innerHTML = `
     <div class="result">
       <div class="kicker">S E A S O N &nbsp; R E S U L T</div>
+      ${achBar}
       <div class="record">
         <span class="rw">${r.season.titles}</span>
         <span class="runit">冠 / ${r.season.events.length} 站</span>
